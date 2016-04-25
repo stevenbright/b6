@@ -1,6 +1,6 @@
 // eval(fs.readFileSync('~/proj/github/briefly/scripts/test/gen-test-db.js').toString('UTF-8'));
 // generateTestDb({authorCount: 100, originsCount: 40, bookCount: 100, fileName: "/tmp/s1.sql"})
-// java -cp ~/.m2/repository/com/h2database/h2/1.4.183/h2-1.4.183.jar org.h2.tools.RunScript -url jdbc:h2:/tmp/d2 -user sa -script /Users/alex/proj/github/briefly/briefly-website/src//main/resources/brieflyWebsite/sql/eolaire/eolaire-schema.sql
+// java -cp ~/.m2/repository/com/h2database/h2/1.4.183/h2-1.4.183.jar org.h2.tools.RunScript -url jdbc:h2:/tmp/d2 -user sa -script /Users/alex/proj/github/b6/b6-website/src//main/resources/b6Website/sql/eolaire/eolaire-schema.sql
 // rlwrap java -cp ~/.m2/repository/com/h2database/h2/1.4.183/h2-1.4.183.jar org.h2.tools.Shell -url jdbc:h2:/tmp/d2 -user sa
 
 var fs = require('fs');

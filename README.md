@@ -52,7 +52,7 @@ ulimit -n 512
 
 ## Sample Configs
 
-Use sample VM properties: ``-Dbrikar.settings.path=file:/home/user/opt/config/briefly.properties``.
+Use sample VM properties: ``-Dbrikar.settings.path=file:/home/user/opt/config/b6.properties``.
 
 Use ``core.properties`` as a base.
 
