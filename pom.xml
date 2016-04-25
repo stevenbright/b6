@@ -138,14 +138,6 @@
         <version>1.4.190</version>
       </dependency>
 
-      <!-- lombok -->
-      <dependency>
-        <groupId>org.projectlombok</groupId>
-        <artifactId>lombok</artifactId>
-        <version>1.16.4</version>
-        <scope>provided</scope>
-      </dependency>
-
       <!-- Connection Pooling -->
       <dependency>
         <groupId>com.mchange</groupId>
