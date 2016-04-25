@@ -19,10 +19,8 @@
   </description>
 
   <modules>
-    <!--
     <module>b6-static-content</module>
     <module>b6-website</module>
-    -->
   </modules>
 
   <properties>
