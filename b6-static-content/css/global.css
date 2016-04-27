@@ -42,12 +42,12 @@ body {
 /* Sign In Form */
 
 form.signin-form div {
-  min-height: 2em;
+  min-height: 2rem;
 }
 
 form.signin-form > div.button-holder {
-  padding-top: 0.2em;
-  padding-bottom: 0.2em;
+  padding-top: 0.2rem;
+  padding-bottom: 0.2rem;
 }
 
 
@@ -60,7 +60,7 @@ form.signin-form > div.button-holder {
 .retell-entry {
   margin-top: 1em;
   /*border-top: 1px solid #d3d7cf;*/
-  padding-top: 0.5em;
+  padding-top: 0.5rem;
 }
 
 .star-rating {
@@ -72,11 +72,12 @@ form.signin-form > div.button-holder {
 /* Related Items, see DetailPage */
 
 .related-items {
-  border-radius: 0.2em;
-  margin-right: 1.1em;
+  border-radius: 0.2rem;
+  margin-right: 1.1rem;
 }
 
 .related-items-header {
+  padding-left: 1rem;
   font-weight: bold;
 }
 
@@ -89,13 +90,13 @@ ul.catalog-list {
 
 ul.catalog-list li {
   border-top: 1px solid #eee;
-  padding-bottom: 1em;
+  padding-bottom: 1rem;
 }
 
 /* GenericCatalogItemDetails */
 
 table.item-info > tbody > tr > td {
-  padding: 0.5em;
+  padding: 0.5rem;
 }
 
 table.item-info > tbody > tr > td:first-child {
@@ -105,13 +106,13 @@ table.item-info > tbody > tr > td:first-child {
 /* Inline Item, see InlineCatalogItem */
 
 .inline-item {
-  padding-left: 0.3em;
+  padding-left: 0.3rem;
 }
 
 /* Named Value Element (see InlineCatalogItemWithId) */
 
 .named-value-elem {
-  padding: 0.5em;
+  padding: 0.5rem;
   display: inline-block;
 }
 
