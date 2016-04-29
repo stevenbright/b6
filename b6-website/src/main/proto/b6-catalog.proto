@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package b6.catalog;
+
+option java_package = "b6.catalog.model";
+option java_outer_classname = "Catalog";
+
+//
+// Domain Types
+//
+
+message CatalogItem {
+  int64 id = 1;
+  string name = 2;
+  string type = 3;
+}
+
+
+//
+// Request/Reply objects
+//
+
+message GetCatalogItemRequest {
+  int64 bookId = 1;
+}
+
+message GetCatalogItemReply {
+  CatalogItem items = 1;
+
+}
