@@ -5,7 +5,7 @@
   <parent>
     <groupId>com.truward.brikar</groupId>
     <artifactId>brikar</artifactId>
-    <version>1.3.20</version>
+    <version>1.4.22</version>
   </parent>
 
   <groupId>b6</groupId>
@@ -30,12 +30,14 @@
 
     <awssdk.version>1.9.13</awssdk.version>
 
+    <guava.version>18.0</guava.version>
+
     <!--<spring.version>3.2.14.RELEASE</spring.version>-->
     <!--<spring-security.version>3.2.3.RELEASE</spring-security.version>-->
 
-    <lombok-plugin.version>1.16.4.1</lombok-plugin.version>
+    <lombok-plugin.version>1.16.8.0</lombok-plugin.version>
 
-    <brikar.version>1.3.20</brikar.version>
+    <brikar.version>1.4.22</brikar.version>
 
     <user-service.version>1.0.3</user-service.version>
 
@@ -97,6 +99,11 @@
         <artifactId>brikar-error-response</artifactId>
         <version>${brikar.version}</version>
       </dependency>
+      <dependency>
+        <groupId>com.truward.brikar</groupId>
+        <artifactId>brikar-rpc-explorer-support</artifactId>
+        <version>${brikar.version}</version>
+      </dependency>
 
       <!-- UTC time -->
       <dependency>
@@ -115,6 +122,21 @@
         <groupId>com.amazonaws</groupId>
         <artifactId>aws-java-sdk-s3</artifactId>
         <version>${awssdk.version}</version>
+      </dependency>
+
+      <!-- Guava -->
+      <dependency>
+        <groupId>com.google.guava</groupId>
+        <artifactId>guava</artifactId>
+        <version>${guava.version}</version>
+      </dependency>
+
+      <!-- lombok -->
+      <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+        <version>1.16.4</version>
+        <scope>provided</scope>
       </dependency>
 
       <!-- Spring Persistence -->
@@ -144,5 +166,33 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.projectlombok</groupId>
+          <artifactId>lombok-maven-plugin</artifactId>
+          <version>${lombok-plugin.version}</version>
+          <executions>
+            <execution>
+              <id>delombok</id>
+              <phase>generate-sources</phase>
+              <goals>
+                <goal>delombok</goal>
+              </goals>
+            </execution>
+            <execution>
+              <id>test-delombok</id>
+              <phase>generate-test-sources</phase>
+              <goals>
+                <goal>testDelombok</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
 </project>
 

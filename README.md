@@ -24,6 +24,12 @@ curl -u testonly:test -X POST 127.0.0.1:8080/g/admin/config
 ### Item
 
 ```
+curl -vv -X POST -H 'Content-Type: application/json' -H 'Accept: application/json' 127.0.0.1:8080/rest/CatalogRestService?m=getCatalogItem -d '{"id": 12}'
+```
+
+
+OLD:
+```
 curl -u testonly:test -H 'Accept: application/json; charset=UTF-8' -H 'Content-Type: application/json; charset=UTF-8' -X GET 127.0.0.1:8080/rest/eolaire/item/150 -s | python -mjson.tool
 ```
 

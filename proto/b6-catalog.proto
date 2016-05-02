@@ -21,10 +21,9 @@ message CatalogItem {
 //
 
 message GetCatalogItemRequest {
-  int64 bookId = 1;
+  int64 id = 1;
 }
 
 message GetCatalogItemReply {
-  CatalogItem items = 1;
-
+  CatalogItem item = 1;
 }

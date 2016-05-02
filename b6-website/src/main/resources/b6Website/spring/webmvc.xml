@@ -14,11 +14,34 @@
   <!-- Controllers -->
   <bean class="b6.website.controller.PublicPageController" autowire="constructor"/>
 
+
+  <!-- Converters for RPC -->
+  <bean id="b6Website.webmvc.protobufConverter" class="com.truward.brikar.protobuf.http.ProtobufHttpMessageConverter" />
+  <bean id="b6Website.webmvc.jsonProtobufConverter" class="com.truward.brikar.protobuf.http.json.ProtobufJsonHttpMessageConverter" />
+
+  <!-- Controllers -->
+  <bean class="com.truward.brikar.rpc.explorer.RpcServiceExplorerController">
+    <property name="rpcBindings">
+      <list>
+        <bean class="com.truward.brikar.rpc.support.ServiceInterfaceServletRpcBinding">
+          <constructor-arg>
+            <list>
+              <ref bean="b6Website.webmvc.protobufConverter"/>
+              <ref bean="b6Website.webmvc.jsonProtobufConverter"/>
+            </list>
+          </constructor-arg>
+          <constructor-arg ref="b6Website.service.catalogRestService" />
+        </bean>
+      </list>
+    </property>
+  </bean>
+
   <!-- Annotation driven support for MVC controllers -->
   <mvc:annotation-driven>
     <!-- custom marshallers -->
     <mvc:message-converters>
-      <bean class="com.truward.brikar.protobuf.http.json.ProtobufJsonHttpMessageConverter" />
+      <ref bean="b6Website.webmvc.protobufConverter"/>
+      <ref bean="b6Website.webmvc.jsonProtobufConverter"/>
     </mvc:message-converters>
   </mvc:annotation-driven>
 

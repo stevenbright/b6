@@ -10,10 +10,13 @@ export default class CatalogList extends Component<{}, /*Props*/{}, /*State*/{}>
       return (<CatalogListItem key={item.id} item={item}/>);
     });
 
+    // TODO: pagination
     return (
-      <ul className="catalog-list">
-        {itemsUi}
-      </ul>
+      <div className="container">
+        <ul className="catalog-list">
+          {itemsUi}
+        </ul>
+      </div>
     );
   }
 }

@@ -7,7 +7,7 @@ FTL     = $(TARGET)/web/freemarker
 NBIN		= ./node_modules/.bin
 PORT		= 8000
 
-.PHONY: clean browserify libs test watch compile server static
+.PHONY: clean browserify libs test watch compile server static model
 
 
 # Targets
@@ -30,6 +30,18 @@ $(ASSETS)/libs/bootstrap:
 
 libs: target node_modules $(ASSETS)/libs/bootstrap
 	cp -r ./node_modules/bootstrap/dist/* $(ASSETS)/libs/bootstrap
+
+# Generated Code
+target/generated: target
+	mkdir target/generated
+
+# Protocol Buffers
+target/generated/b6-catalog.js: target/generated
+	$(NBIN)/pbjs -t commonjs ../proto/b6-catalog.proto > target/generated/b6-catalog.js
+
+# Consolidated Target for Protocol Buffer Generated Files, see also https://github.com/dcodeIO/protobuf.js/tree/master/examples/protoify
+# TODO: start using it (code, build target)
+model: target/generated/b6-catalog.js
 
 watch: node_modules libs target
 	$(NBIN)/watchify js/main.js -o $(ASSETS)/js/bundle.js -v -d -t babelify

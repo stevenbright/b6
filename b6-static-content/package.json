@@ -13,6 +13,8 @@
     "rsvp-ajax": "1.0.2",
     "rsvp-cache": "^1.0.0",
 
+    "protobufjs": "^5.0.1",
+
     "react": "^0.14.7",
     "react-dom": "^0.14.7"
   },

@@ -8,4 +8,7 @@
   <import resource="dao/dao-context.xml"/>
 
   <bean class="b6.website.service.support.DefaultCatalogService" autowire="constructor"/>
+
+  <bean id="b6Website.service.catalogRestService"
+        class="b6.website.rpc.DefaultCatalogRestService" autowire="constructor"/>
 </beans>
