@@ -1,9 +1,8 @@
-<#import "../template/page.ftl" as pt/>
-<#import "../template/heading.ftl" as h/>
+<#import "../template/page.ftl" as page/>
 
-<@pt.page title="Login">
+<@page.common title="Login">
 
-<@h.heading/>
+<@page.heading/>
 
 <#if loginError??>
 <div class="alert alert-danger" role="alert">
@@ -45,4 +44,4 @@
 </div> <!-- /.row -->
 </div> <!-- /.container -->
 
-</@pt.page>
+</@page.common>
