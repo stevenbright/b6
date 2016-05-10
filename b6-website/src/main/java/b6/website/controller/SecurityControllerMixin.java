@@ -34,7 +34,7 @@ public interface SecurityControllerMixin {
 
   default long getUserId() {
     final UserDetails account = getUserAccount();
-    final  Long id = account != null ? UserIdRoleUtil.tryGetUserId(account.getAuthorities()) : null;
+    final Long id = account != null ? UserIdRoleUtil.tryGetUserId(account.getAuthorities()) : null;
     if (id == null) {
       throw new InsufficientAuthenticationException("Internal: UserAccount has not been found or RoleId is not a " +
           "part of account=" + account);
