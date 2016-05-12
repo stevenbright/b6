@@ -29,9 +29,6 @@ export default class CatalogListItem extends Component<{},
           <span className="related-items-header">Genres:&nbsp;</span>{genresUi}
         </span>
       );
-    } else {
-      // unknown item - just record a type
-      profileUi = (<p className="text-muted text-right"><small>{item.type}</small></p>);
     }
 
     return (
@@ -39,7 +36,8 @@ export default class CatalogListItem extends Component<{},
         <div className="container">
           <div className="row">
             <div className="col-md-12">
-              <h3><small>{item.id}</small>&nbsp;<a href={itemDetailPageUrl} title={item.title}>{item.title}</a></h3>
+              <p className="pull-right"><span className="label label-default">{item.type}</span><small className="text-muted">&nbsp;|&nbsp;{item.id}</small></p>
+              <h4 className="pull-left"><a href={itemDetailPageUrl} title={item.title}>{item.title}</a></h4>
             </div>
           </div>
           <div className="row">

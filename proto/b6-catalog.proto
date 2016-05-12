@@ -10,18 +10,38 @@ option java_outer_classname = "Catalog";
 //
 
 message CatalogItem {
-  int64 id = 1;
-  string name = 2;
+  string id = 1;
+  string title = 2;
   string type = 3;
+  bool isFavorite = 4;
+
+  Book book = 5; // non null if this item is book
 }
 
+
+// CatalogItem - Book extension
+
+message Named {
+  string id = 1;
+  string title = 2;
+}
+
+message Book {
+  repeated Named authors = 1;
+  repeated Named genres = 2;
+  Named language = 3;
+  repeated Named origins = 4;
+
+  int32 fileSize = 5;
+  string downloadUrl = 6;
+}
 
 //
 // Request/Reply objects
 //
 
 message GetCatalogItemRequest {
-  int64 id = 1;
+  string id = 1;
 }
 
 message GetCatalogItemReply {

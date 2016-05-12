@@ -38,7 +38,7 @@ export default class ViewDispatcher extends Component<{}, {}, /*State*/{}> {
     const gotoStorefrontPage = this.setState.bind(this, {nowShowing: Nav.STOREFRONT});
     const gotoCatalogPage = this.setState.bind(this, {nowShowing: Nav.CATALOG});
     const gotoAboutPage = this.setState.bind(this, {nowShowing: Nav.ABOUT});
-    const gotoDetailPage = (id) => this.setState({nowShowing: Nav.DETAIL, id: parseInt(id)});
+    const gotoDetailPage = (id) => this.setState({nowShowing: Nav.DETAIL, id: id});
 
     // TODO: disable in prod
     const gotoDemoPage = this.setState.bind(this, {nowShowing: Nav.DEMO});

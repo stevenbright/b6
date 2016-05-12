@@ -7,18 +7,18 @@ import CatalogList from './CatalogList.react';
 export default class CatalogPage extends Component<{}, {}, {}> {
   render(): ?ReactElement {
     const catalogListItems = [
-      {id: 1, title: 'Sample Author', type: 'person', isFavorite: true},
-      {id: 2, title: 'Sample Book N1', type: 'book', isFavorite: false},
+      {id: "A1", title: 'Sample Author', type: 'person', isFavorite: true},
+      {id: "A2", title: 'Sample Book N1', type: 'book', isFavorite: false},
       {
-        id: 3,
+        id: "A3",
         title: 'Another Sample Book',
         type: 'book',
         book: {
           authors: [
-            {id: 1000, title: 'Jack London'}
+            {id: "A1000", title: 'Jack London'}
           ],
           genres: [
-            {id: 500, title: 'fiction'}
+            {id: "A500", title: 'fiction'}
           ]
         },
         isFavorite: true
