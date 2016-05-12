@@ -10,9 +10,6 @@ import CatalogList from '../catalog/CatalogList.react';
 // page to be demo'ed:
 import LoadingPage from '../common/LoadingPage.react';
 
-// parsing query
-import {parseQueryString} from '../../util/uri.js';
-
 class DemoControlsPage extends Component<{}, {}, {}> {
   render(): ?ReactElement {
     const catalogListItems = [
@@ -58,8 +55,14 @@ class DemoControlsPage extends Component<{}, {}, {}> {
 
 export default class DemoPage extends Component<{}, {}, {}> {
   render(): ?ReactElement {
-    const queryParam = parseQueryString(window.location.search);
-    const mode = ("mode" in queryParam ? queryParam["mode"] : "default");
+    let mode = "default";
+
+    const modeEq = "mode=";
+    const searchPart = window.location.search;
+    const modeIndex = searchPart.indexOf(modeEq);
+    if (modeIndex >= 0) {
+      mode = searchPart.substring(modeIndex + modeEq.length);
+    }
 
     if (mode == "loading") {
       return <LoadingPage target={"demo"} />;

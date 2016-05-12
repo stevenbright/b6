@@ -9,6 +9,7 @@ import {Router} from 'director';
 import StorefrontPage from './storefront/StorefrontPage.react';
 import CatalogPage from './catalog/CatalogPage.react';
 import AboutPage from './about/AboutPage.react';
+import DetailPage from './detail/DetailPage.react';
 import DemoPage from './demo/DemoPage.react';
 
 import TitleService from '../service/TitleService';
@@ -19,25 +20,17 @@ const Nav = {
   UNDEFINED:    "UNDEFINED",
   STOREFRONT:   "STOREFRONT",
   CATALOG:      "CATALOG",
+  DETAIL:       "DETAIL",
   DEMO:         "DEMO",
   ABOUT:        "ABOUT"
 };
 
-
-type State = {
-  // current widget
-  nowShowing: string,
-
-  // controller variables
-  id: ?number
-};
-
-export default class ViewDispatcher extends Component<{}, {}, State> {
+export default class ViewDispatcher extends Component<{}, {}, /*State*/{}> {
   state = {
     nowShowing: Nav.UNDEFINED,
 
     id: undefined,
-    offsetToken: undefined,
+    cursor: undefined,
     limit: undefined
   }
 
@@ -45,7 +38,7 @@ export default class ViewDispatcher extends Component<{}, {}, State> {
     const gotoStorefrontPage = this.setState.bind(this, {nowShowing: Nav.STOREFRONT});
     const gotoCatalogPage = this.setState.bind(this, {nowShowing: Nav.CATALOG});
     const gotoAboutPage = this.setState.bind(this, {nowShowing: Nav.ABOUT});
-    //const gotoDetailPage = (id) => this.setState({nowShowing: Nav.DETAIL, id: parseInt(id)});
+    const gotoDetailPage = (id) => this.setState({nowShowing: Nav.DETAIL, id: parseInt(id)});
 
     // TODO: disable in prod
     const gotoDemoPage = this.setState.bind(this, {nowShowing: Nav.DEMO});
@@ -54,6 +47,7 @@ export default class ViewDispatcher extends Component<{}, {}, State> {
       '/storefront': gotoStorefrontPage,
       '/catalog': gotoCatalogPage,
       '/demo': gotoDemoPage,
+      '/item/:id': gotoDetailPage,
       '/about': gotoAboutPage
     });
 
@@ -61,6 +55,8 @@ export default class ViewDispatcher extends Component<{}, {}, State> {
   }
 
   render(): ?ReactElement {
+    console.log("state =", this.state.nowShowing);
+
     switch (this.state.nowShowing) {
       case Nav.STOREFRONT:
         TitleService.setTitle("Storefront");
@@ -69,6 +65,10 @@ export default class ViewDispatcher extends Component<{}, {}, State> {
       case Nav.CATALOG:
         TitleService.setTitle("Catalog");
         return (<CatalogPage />);
+
+      case Nav.DETAIL:
+        TitleService.setTitle("Details");
+        return (<DetailPage id={this.state.id} />);
 
       case Nav.ABOUT:
         TitleService.setTitle("About");
@@ -80,7 +80,7 @@ export default class ViewDispatcher extends Component<{}, {}, State> {
 
       default:
         TitleService.setTitle("Loading...");
-        return (<div>Loading...</div>);
+        return (<div>Looking for something?...</div>);
     }
   }
 }

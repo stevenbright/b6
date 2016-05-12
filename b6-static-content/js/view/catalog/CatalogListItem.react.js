@@ -29,6 +29,9 @@ export default class CatalogListItem extends Component<{},
           <span className="related-items-header">Genres:&nbsp;</span>{genresUi}
         </span>
       );
+    } else {
+      // unknown item - just record a type
+      profileUi = (<p className="text-muted text-right"><small>{item.type}</small></p>);
     }
 
     return (

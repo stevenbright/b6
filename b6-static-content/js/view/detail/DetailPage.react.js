@@ -1,0 +1,17 @@
+'use strict';
+
+import React, {Component} from 'react';
+
+export default class DetailPage extends Component<{}, {}, {}> {
+
+  render(): ?ReactElement {
+    return (
+      <div className="container">
+        <h2>Detail Page</h2>
+        <hr/>
+        <p>TODO: replace with real page</p>
+      </div>
+    );
+  }
+}
+

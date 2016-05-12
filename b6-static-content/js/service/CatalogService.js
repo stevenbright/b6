@@ -1,20 +1,16 @@
 'use strict';
 
-import ajax from 'rsvp-ajax';
-import cache from 'rsvp-cache';
-import {Promise} from 'rsvp';
-
 import {DEFAULT_LIMIT} from '../util/Constants';
 
-function prepareRequestWithOffsetAndLimit(offsetToken, limit) {
+function prepareRequestWithCursorAndLimit(cursor, limit) {
   limit = limit || DEFAULT_LIMIT;
 
   var request = {
     "limit": limit
   };
 
-  if (offsetToken) {
-    request["offsetToken"] = offsetToken;
+  if (cursor) {
+    request["cursor"] = cursor;
   }
 
   return request;
@@ -31,8 +27,8 @@ class CatalogService {
 //    return ajax.request("GET", toUrl("/item/profile/" + id));
 //  }
 //
-//  getItemByType(itemTypeId: number, offsetToken: string, limit: number): Promise {
-//    const request = prepareRequestWithOffsetAndLimit(offsetToken, limit);
+//  getItemByType(itemTypeId: number, cursor: string, limit: number): Promise {
+//    const request = prepareRequestWithCursorAndLimit(cursor, limit);
 //    request.itemTypeId = itemTypeId;
 //    return ajax.request("POST", toUrl("/item/query/by-type"), request);
 //  }

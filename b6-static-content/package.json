@@ -7,11 +7,7 @@
     "bootstrap": "^3.0.0",
     "director": "^1.2.8",
 
-    "immutable": "^3.7.5",
-
-    "rsvp": "^3.0.0",
-    "rsvp-ajax": "1.0.2",
-    "rsvp-cache": "^1.0.0",
+    "query-string": "^4.1.0",
 
     "protobufjs": "^5.0.1",
 
