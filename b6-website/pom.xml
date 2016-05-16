@@ -125,16 +125,6 @@
       <artifactId>aws-java-sdk-s3</artifactId>
     </dependency>
 
-    <!--
-      Guava comes as transitive dependency of protobuf-java-util included in brikar-protobuf-http-json,
-      we don't actually need it, that's why scope is 'provided' here
-    -->
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <scope>provided</scope>
-    </dependency>
-
     <!-- Spring security -->
     <dependency>
       <groupId>org.springframework.security</groupId>

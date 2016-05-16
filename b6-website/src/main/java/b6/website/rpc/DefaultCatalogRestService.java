@@ -10,11 +10,11 @@ public final class DefaultCatalogRestService implements CatalogRestService {
   @Override
   public Catalog.GetCatalogItemReply getCatalogItem(Catalog.GetCatalogItemRequest request) {
     final Catalog.GetCatalogItemReply.Builder replyBuilder = Catalog.GetCatalogItemReply.newBuilder();
-    final long id = request.getId();
-    if (id == 12) {
+    final String id = request.getId();
+    if ("A12".equals(id)) {
       replyBuilder.setItem(Catalog.CatalogItem.newBuilder()
-          .setId(12)
-          .setName("name")
+          .setId(id)
+          .setTitle("name")
           .setType("book")
           .build());
     }

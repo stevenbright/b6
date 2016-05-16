@@ -30,8 +30,6 @@
 
     <awssdk.version>1.9.13</awssdk.version>
 
-    <guava.version>18.0</guava.version>
-
     <!--<spring.version>3.2.14.RELEASE</spring.version>-->
     <!--<spring-security.version>3.2.3.RELEASE</spring-security.version>-->
 
@@ -122,13 +120,6 @@
         <groupId>com.amazonaws</groupId>
         <artifactId>aws-java-sdk-s3</artifactId>
         <version>${awssdk.version}</version>
-      </dependency>
-
-      <!-- Guava -->
-      <dependency>
-        <groupId>com.google.guava</groupId>
-        <artifactId>guava</artifactId>
-        <version>${guava.version}</version>
       </dependency>
 
       <!-- lombok -->
