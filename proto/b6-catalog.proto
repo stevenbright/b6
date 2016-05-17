@@ -26,24 +26,45 @@ message Named {
   string title = 2;
 }
 
+message DownloadItems {
+  string descriptorText = 1;
+  int32 fileSize = 2;
+  string downloadUrl = 3;
+}
+
 message Book {
   repeated Named authors = 1;
   repeated Named genres = 2;
   Named language = 3;
   repeated Named origins = 4;
-
-  int32 fileSize = 5;
-  string downloadUrl = 6;
+  repeated DownloadItems downloadItems = 5;
 }
 
 //
 // Request/Reply objects
 //
 
-message GetCatalogItemRequest {
+message GetItemRequest {
   string id = 1;
 }
 
-message GetCatalogItemReply {
+message GetItemReply {
   CatalogItem item = 1;
 }
+
+enum SortType {
+  DEFAULT = 0;
+}
+
+message GetCatalogRequest {
+  string cursor = 1;
+  int32 size = 2;
+  SortType sortType = 3;
+}
+
+message GetCatalogReply {
+  string cursor = 1;
+  repeated CatalogItem items = 2;
+}
+
+

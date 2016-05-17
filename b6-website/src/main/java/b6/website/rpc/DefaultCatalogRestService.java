@@ -8,8 +8,8 @@ import b6.catalog.model.Catalog;
 public final class DefaultCatalogRestService implements CatalogRestService {
 
   @Override
-  public Catalog.GetCatalogItemReply getCatalogItem(Catalog.GetCatalogItemRequest request) {
-    final Catalog.GetCatalogItemReply.Builder replyBuilder = Catalog.GetCatalogItemReply.newBuilder();
+  public Catalog.GetItemReply getItem(Catalog.GetItemRequest request) {
+    final Catalog.GetItemReply.Builder replyBuilder = Catalog.GetItemReply.newBuilder();
     final String id = request.getId();
     if ("A12".equals(id)) {
       replyBuilder.setItem(Catalog.CatalogItem.newBuilder()
