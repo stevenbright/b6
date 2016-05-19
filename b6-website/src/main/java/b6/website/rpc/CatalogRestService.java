@@ -10,4 +10,6 @@ import b6.catalog.model.Catalog;
 public interface CatalogRestService {
 
   Catalog.GetItemReply getItem(Catalog.GetItemRequest request);
+
+  Catalog.GetItemsReply getItems(Catalog.GetItemsRequest request);
 }

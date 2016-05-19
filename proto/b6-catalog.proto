@@ -56,13 +56,14 @@ enum SortType {
   DEFAULT = 0;
 }
 
-message GetCatalogRequest {
+message GetItemsRequest {
   string cursor = 1;
-  int32 size = 2;
+  int32 limit = 2;
+
   SortType sortType = 3;
 }
 
-message GetCatalogReply {
+message GetItemsReply {
   string cursor = 1;
   repeated CatalogItem items = 2;
 }

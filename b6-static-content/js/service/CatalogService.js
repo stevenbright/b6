@@ -16,16 +16,22 @@ function prepareRequestWithCursorAndLimit(cursor, limit) {
   return request;
 }
 
+function exec(methodName, requestBody) {
+  return ajax.request('POST', '/rest/CatalogRestService?m=' + methodName, requestBody);
+}
+
 class CatalogService {
 
-  getItemById(id: number): Promise {
-    //return ajax.request("GET", toUrl("/item/entry/" + id));
-    return null;
+  getItem(id: string): Promise {
+    return exec('getItem', {'id': id});
   }
 
-//  getItemProfile(id: number): Promise {
-//    return ajax.request("GET", toUrl("/item/profile/" + id));
-//  }
+  getItems(cursor: string, limit: number): Promise {
+    cursor = cursor || null;
+    limit = limit || 0;
+    return exec('getItems', {'cursor': cursor, 'limit': limit})
+  }
+
 //
 //  getItemByType(itemTypeId: number, cursor: string, limit: number): Promise {
 //    const request = prepareRequestWithCursorAndLimit(cursor, limit);

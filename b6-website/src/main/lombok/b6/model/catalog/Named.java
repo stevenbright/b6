@@ -6,14 +6,11 @@ import lombok.*;
  * @author Alexander Shabanov
  */
 @Getter
-@Builder
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor(access = AccessLevel.PUBLIC)
 @ToString
 @EqualsAndHashCode
-public final class CatalogItem {
+public class Named {
+
   private final long id;
   private final String title;
-  private final String type;
-
-  private final CatalogItemExtension extension;
 }

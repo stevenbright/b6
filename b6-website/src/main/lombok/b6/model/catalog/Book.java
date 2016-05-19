@@ -2,6 +2,8 @@ package b6.model.catalog;
 
 import lombok.*;
 
+import java.util.List;
+
 /**
  * @author Alexander Shabanov
  */
@@ -10,10 +12,7 @@ import lombok.*;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @ToString
 @EqualsAndHashCode
-public final class CatalogItem {
-  private final long id;
-  private final String title;
-  private final String type;
-
-  private final CatalogItemExtension extension;
+public final class Book implements CatalogItemExtension {
+  private final List<Named> authors; // TODO: persons?
+  private final List<Named> genres;
 }

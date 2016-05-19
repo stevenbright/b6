@@ -1,4 +1,4 @@
-package b6.website;
+package b6.website.service;
 
 import org.junit.Test;
 
@@ -7,7 +7,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Alexander Shabanov
  */
-public class DummyTest {
+public class CatalogServiceTest {
 
   @Test
   public void shouldPass() {
