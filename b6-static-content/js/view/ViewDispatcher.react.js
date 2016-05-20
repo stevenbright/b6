@@ -36,12 +36,14 @@ export default class ViewDispatcher extends Component<{}, {}, /*State*/{}> {
 
   componentDidMount(): void {
     const gotoStorefrontPage = this.setState.bind(this, {nowShowing: Nav.STOREFRONT});
+
     const gotoCatalogPage = this.setState.bind(this, {nowShowing: Nav.CATALOG, cursor: null, limit: 8});
     const gotoCatalogPageCursorLimit = (cursor, limit) => this.setState({
       nowShowing: Nav.CATALOG,
       cursor,
       limit: parseInt(limit)
     });
+
     const gotoAboutPage = this.setState.bind(this, {nowShowing: Nav.ABOUT});
     const gotoDetailPage = (id) => this.setState({nowShowing: Nav.DETAIL, id: id});
 
@@ -50,8 +52,10 @@ export default class ViewDispatcher extends Component<{}, {}, /*State*/{}> {
 
     const router = Router({
       '/storefront': gotoStorefrontPage,
+
       '/catalog/:cursor/page/:limit': gotoCatalogPageCursorLimit,
       '/catalog': gotoCatalogPage,
+
       '/demo': gotoDemoPage,
       '/item/:id': gotoDetailPage,
       '/about': gotoAboutPage

@@ -29,7 +29,7 @@ export default class CatalogPage extends Component<{},
       return (<LoadingPage target='Catalog'/>);
     }
 
-    console.log('items', this.state.items, 'cursor', this.state.cursor);
+    //console.log('items', this.state.items, 'cursor', this.state.cursor);
 
     let paginationLink = [];
     if (this.state.cursor != null) {
@@ -52,8 +52,7 @@ export default class CatalogPage extends Component<{},
   }
 
   _fetch(props): void {
-    console.log("About to fetch catalog items", props);
-
+    //console.log("About to fetch catalog items", props);
     const p = CatalogService.getItems(props.cursor, props.limit);
     p.then(
       (response) => this.setState({ items: response['items'], cursor: response['cursor'], loading: false }),
