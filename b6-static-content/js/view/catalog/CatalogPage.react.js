@@ -3,11 +3,15 @@
 import React, {Component} from 'react';
 
 import CatalogList from './CatalogList.react';
+import LoadingPage from '../common/LoadingPage.react';
+
+import CatalogService from '../../service/CatalogService';
 
 export default class CatalogPage extends Component<{},
   /*Props*/{ /*cursor: string, limit: number, itemType: string*/ },
   /*State*/{}> {
-  state: {
+
+  state = {
     loading: true,
     items: []
   }
@@ -21,42 +25,38 @@ export default class CatalogPage extends Component<{},
   }
 
   render(): ?ReactElement {
+    if (this.state.loading) {
+      return (<LoadingPage target='Catalog'/>);
+    }
 
-    const catalogListItems = [
-      {id: "A1", title: 'Sample Author', type: 'person', isFavorite: true},
-      {id: "A2", title: 'Sample Book N1', type: 'book', isFavorite: false},
-      {
-        id: "A3",
-        title: 'Another Sample Book',
-        type: 'book',
-        book: {
-          authors: [
-            {id: "A1000", title: 'Jack London'}
-          ],
-          genres: [
-            {id: "A500", title: 'fiction'}
-          ]
-        },
-        isFavorite: true
-      }
-    ];
+    console.log('items', this.state.items, 'cursor', this.state.cursor);
+
+    let paginationLink = [];
+    if (this.state.cursor != null) {
+      const link = '#/catalog/' + this.state.cursor + '/page/' + this.props.limit;
+      paginationLink = (
+        <div>
+          <a href={link}>Next</a>
+        </div>
+      );
+    }
 
     return (
       <div className="container">
         <h2>Catalog</h2>
-        <CatalogList items={catalogListItems} />
+        <CatalogList items={this.state.items} />
+        <hr/>
+        {paginationLink}
       </div>
     );
   }
 
   _fetch(props): void {
     console.log("About to fetch catalog items", props);
-    const itemId = props.itemId;
-    const itemType = props.itemType;
 
-    const p = CatalogAdapterService.getItem(itemId);
+    const p = CatalogService.getItems(props.cursor, props.limit);
     p.then(
-      (response) => this.setState({ itemDetails: response, loading: false }),
+      (response) => this.setState({ items: response['items'], cursor: response['cursor'], loading: false }),
       (err) => console.log("Error:", err));
   }
 }

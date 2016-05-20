@@ -36,7 +36,12 @@ export default class ViewDispatcher extends Component<{}, {}, /*State*/{}> {
 
   componentDidMount(): void {
     const gotoStorefrontPage = this.setState.bind(this, {nowShowing: Nav.STOREFRONT});
-    const gotoCatalogPage = this.setState.bind(this, {nowShowing: Nav.CATALOG});
+    const gotoCatalogPage = this.setState.bind(this, {nowShowing: Nav.CATALOG, cursor: null, limit: 8});
+    const gotoCatalogPageCursorLimit = (cursor, limit) => this.setState({
+      nowShowing: Nav.CATALOG,
+      cursor,
+      limit: parseInt(limit)
+    });
     const gotoAboutPage = this.setState.bind(this, {nowShowing: Nav.ABOUT});
     const gotoDetailPage = (id) => this.setState({nowShowing: Nav.DETAIL, id: id});
 
@@ -45,6 +50,7 @@ export default class ViewDispatcher extends Component<{}, {}, /*State*/{}> {
 
     const router = Router({
       '/storefront': gotoStorefrontPage,
+      '/catalog/:cursor/page/:limit': gotoCatalogPageCursorLimit,
       '/catalog': gotoCatalogPage,
       '/demo': gotoDemoPage,
       '/item/:id': gotoDetailPage,
@@ -64,7 +70,7 @@ export default class ViewDispatcher extends Component<{}, {}, /*State*/{}> {
 
       case Nav.CATALOG:
         TitleService.setTitle("Catalog");
-        return (<CatalogPage />);
+        return (<CatalogPage cursor={this.state.cursor} limit={this.state.limit} />);
 
       case Nav.DETAIL:
         TitleService.setTitle("Details");

@@ -40,19 +40,23 @@ public final class DefaultCatalogRestService implements CatalogRestService {
       throw new IllegalArgumentException("Invalid limit=" + request.getLimit());
     }
 
+    final Catalog.GetItemsReply.Builder builder = Catalog.GetItemsReply.newBuilder();
     final int size = request.getLimit() == 0 ? DEFAULT_LIMIT : Math.min(DEFAULT_LIMIT, request.getLimit());
     final List<Catalog.CatalogItem> resultItems = items
         .stream()
-        .filter(item -> request.getCursor() == null || request.getCursor().compareTo(item.getId()) < 0)
+        .filter(item -> {
+          boolean result = request.getCursor() == null || request.getCursor().compareTo(item.getId()) < 0;
+          return result;
+        })
         .sorted((o1, o2) -> o1.getId().compareTo(o2.getId()))
         .limit(size)
         .collect(Collectors.toList());
-    final String resultCursor = (resultItems.size() == size ? resultItems.get(size - 1).getId() : null);
 
-    return Catalog.GetItemsReply.newBuilder()
-        .addAllItems(resultItems)
-        .setCursor(resultCursor)
-        .build();
+    if (resultItems.size() == size) {
+      builder.setCursor(resultItems.get(size - 1).getId());
+    }
+
+    return builder.addAllItems(resultItems).build();
   }
 
   //
