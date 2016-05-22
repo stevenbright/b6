@@ -3,8 +3,8 @@
 import React, {Component} from 'react';
 
 import LoadingPage from '../common/LoadingPage.react';
-
 import CatalogService from '../../service/CatalogService';
+import InlineCatalogItem from '../catalog/InlineCatalogItem.react';
 
 export default class DetailPage extends Component<{},
   /*Props*/{ /*id: string*/ },
@@ -33,25 +33,42 @@ export default class DetailPage extends Component<{},
 
     console.log('DP item', item);
 
-    let relatedItems = [];
     let itemProfile = [];
     if (item.type === 'book') {
-      relatedItems = (<p>QQQ!</p>);
+      const authorsUi = item.book.authors.map((author) => (<InlineCatalogItem key={author.id} item={author} />));
+      const genresUi = item.book.genres.map((genre) => (<InlineCatalogItem key={genre.id} item={genre} />));
+
       itemProfile = (
         <div>
-          <p>TODO: nested</p>
+          <hr/>
+          <table className="item-info">
+            <tbody>
+              <tr>
+                <td>Authors:</td>
+                <td>{authorsUi}</td>
+              </tr>
+              <tr>
+                <td>Genres:</td>
+                <td>{genresUi}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       );
     } else {
-      relatedItems = (<p>TODO: Loading related items ...</p>);
+      itemProfile = (
+        <div>
+          <hr/>
+          <p>TODO: Loading related items ...</p>
+        </div>
+      );
     }
 
     return (
       <div className="container">
         <h2>{item.title}</h2>
         <p><small>{item.id} | {item.type}</small></p>
-        <hr/>
-        {relatedItems}
+        {itemProfile}
       </div>
     );
   }
