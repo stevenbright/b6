@@ -29,8 +29,6 @@ export default class CatalogPage extends Component<{},
       return (<LoadingPage target='Catalog'/>);
     }
 
-    //console.log('items', this.state.items, 'cursor', this.state.cursor);
-
     let paginationLink = [];
     if (this.state.cursor != null) {
       const link = '#/catalog/' + this.state.cursor + '/page/' + this.props.limit;
@@ -44,6 +42,24 @@ export default class CatalogPage extends Component<{},
     return (
       <div className="container">
         <h2>Catalog</h2>
+
+        <div className="btn-toolbar" role="toolbar">
+          <div className="btn-group btn-group-xs" role="group">
+            <button type="button" className="btn btn-default">None</button>
+            <button type="button" className="btn btn-default">Book</button>
+            <button type="button" className="btn btn-default">Person</button>
+            <button type="button" className="btn btn-default">Genre</button>
+            <button type="button" className="btn btn-default">Origin</button>
+            <button type="button" className="btn btn-default">Language</button>
+          </div>
+          <div className="btn-group btn-group-xs" role="group">
+            <button type="button" className="btn btn-default">Default</button>
+            <button type="button" className="btn btn-default">Title: A-Z</button>
+            <button type="button" className="btn btn-default">Title: Z-A</button>
+          </div>
+        </div>
+        <br/>
+
         <CatalogList items={this.state.items} />
         <hr/>
         {paginationLink}
@@ -52,7 +68,6 @@ export default class CatalogPage extends Component<{},
   }
 
   _fetch(props): void {
-    //console.log("About to fetch catalog items", props);
     const p = CatalogService.getItems(props.cursor, props.limit);
     p.then(
       (response) => this.setState({ items: response['items'], cursor: response['cursor'], loading: false }),

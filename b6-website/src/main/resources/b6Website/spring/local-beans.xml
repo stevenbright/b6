@@ -10,5 +10,5 @@
   <bean class="b6.website.service.support.DefaultCatalogService" autowire="constructor"/>
 
   <bean id="b6Website.service.catalogRestService"
-        class="b6.website.rpc.DefaultCatalogRestService" autowire="constructor"/>
+        class="b6.website.rpc.StubCatalogRestService" autowire="constructor"/>
 </beans>

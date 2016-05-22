@@ -54,6 +54,10 @@ message GetItemReply {
 
 enum SortType {
   DEFAULT = 0;
+
+  TITLE_ASCENDING = 1;
+
+  TITLE_DESCENDING = 2;
 }
 
 message GetItemsRequest {
@@ -61,6 +65,8 @@ message GetItemsRequest {
   int32 limit = 2;
 
   SortType sortType = 3;
+  string typeFilter = 4;
+  string nameFilter = 5;
 }
 
 message GetItemsReply {

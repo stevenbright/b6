@@ -12,6 +12,7 @@ export default class DetailPage extends Component<{},
 
   state = {
     loading: true,
+    loadingRelatedItems: true,
     item: null
   }
 
@@ -30,12 +31,27 @@ export default class DetailPage extends Component<{},
 
     const item = this.state.item;
 
+    console.log('DP item', item);
+
+    let relatedItems = [];
+    let itemProfile = [];
+    if (item.type === 'book') {
+      relatedItems = (<p>QQQ!</p>);
+      itemProfile = (
+        <div>
+          <p>TODO: nested</p>
+        </div>
+      );
+    } else {
+      relatedItems = (<p>TODO: Loading related items ...</p>);
+    }
+
     return (
       <div className="container">
         <h2>{item.title}</h2>
         <p><small>{item.id} | {item.type}</small></p>
         <hr/>
-        <p>Loading related items...</p>
+        {relatedItems}
       </div>
     );
   }
