@@ -3,6 +3,7 @@
 
 import React, {Component} from 'react';
 import {Router} from 'director';
+import {DEFAULT_LIMIT, ALL_TYPE_FILTER, MISSING_CURSOR, ALL_NAME_FILTER, DEFAULT_SORT_TYPE} from '../util/Constants';
 
 // widgets
 
@@ -30,17 +31,28 @@ export default class ViewDispatcher extends Component<{}, {}, /*State*/{}> {
     nowShowing: Nav.UNDEFINED,
 
     id: undefined,
-    cursor: undefined,
-    limit: undefined
+    typeFilter: ALL_TYPE_FILTER,
+    cursor: MISSING_CURSOR,
+    nameFilter: ALL_NAME_FILTER,
+    sortType: DEFAULT_SORT_TYPE,
+    limit: DEFAULT_LIMIT
   }
 
   componentDidMount(): void {
     const gotoStorefrontPage = this.setState.bind(this, {nowShowing: Nav.STOREFRONT});
 
-    const gotoCatalogPage = this.setState.bind(this, {nowShowing: Nav.CATALOG, cursor: null, limit: 8});
-    const gotoCatalogPageCursorLimit = (cursor, limit) => this.setState({
+    const gotoCatalogPage = this.setState.bind(this, {
       nowShowing: Nav.CATALOG,
+      typeFilter: ALL_TYPE_FILTER,
+      cursor: MISSING_CURSOR,
+      sortType: DEFAULT_SORT_TYPE,
+      limit: DEFAULT_LIMIT
+    });
+    const gotoCatalogPageWithParams = (sortType, limit, typeFilter, cursor) => this.setState({
+      nowShowing: Nav.CATALOG,
+      typeFilter,
       cursor,
+      sortType,
       limit: parseInt(limit)
     });
 
@@ -53,7 +65,7 @@ export default class ViewDispatcher extends Component<{}, {}, /*State*/{}> {
     const router = Router({
       '/storefront': gotoStorefrontPage,
 
-      '/catalog/:cursor/page/:limit': gotoCatalogPageCursorLimit,
+      '/catalog/s/:sort/l/:limit/t/:type/c/:cursor': gotoCatalogPageWithParams,
       '/catalog': gotoCatalogPage,
 
       '/demo': gotoDemoPage,
@@ -74,7 +86,12 @@ export default class ViewDispatcher extends Component<{}, {}, /*State*/{}> {
 
       case Nav.CATALOG:
         TitleService.setTitle("Catalog");
-        return (<CatalogPage cursor={this.state.cursor} limit={this.state.limit} />);
+        return (
+          <CatalogPage
+            typeFilter={this.state.typeFilter}
+            sortType={this.state.sortType}
+            cursor={this.state.cursor}
+            limit={this.state.limit}/>);
 
       case Nav.DETAIL:
         TitleService.setTitle("Details");

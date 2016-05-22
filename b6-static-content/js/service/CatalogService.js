@@ -29,15 +29,8 @@ class CatalogService {
     return exec('getItem', {'id': id});
   }
 
-  getItems(cursor: string, limit: number): Promise {
-    cursor = cursor || null;
-    limit = limit || 0;
-
-    const request = {'limit': limit};
-    if (cursor != null) {
-      request['cursor'] = cursor;
-    }
-
+  getItems(request): Promise {
+    console.log('getItems : request =', request);
     return exec('getItems', request);
   }
 };

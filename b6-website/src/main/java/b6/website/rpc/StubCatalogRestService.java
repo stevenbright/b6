@@ -1,6 +1,7 @@
 package b6.website.rpc;
 
 import b6.catalog.model.Catalog;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -15,7 +16,7 @@ import java.util.stream.Collectors;
  */
 public final class StubCatalogRestService implements CatalogRestService {
 
-  public static final int DEFAULT_LIMIT = 5;
+  public static final int DEFAULT_LIMIT = 16;
 
   private List<Catalog.CatalogItem> items = new ArrayList<>(100);
 
@@ -53,11 +54,11 @@ public final class StubCatalogRestService implements CatalogRestService {
     final List<Catalog.CatalogItem> resultItems = items
         .stream()
         .filter(item -> {
-          if (request.getNameFilter() != null && !item.getTitle().startsWith(request.getNameFilter())) {
+          if (StringUtils.hasLength(request.getNameFilter()) && !item.getTitle().startsWith(request.getNameFilter())) {
             return false;
           }
 
-          if (request.getTypeFilter() != null && !item.getType().equals(request.getTypeFilter())) {
+          if (StringUtils.hasLength(request.getTypeFilter()) && !item.getType().equals(request.getTypeFilter())) {
             return false;
           }
 
