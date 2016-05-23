@@ -42,7 +42,7 @@ export default class CatalogPage extends Component<{},
       const link = createCatalogUrl(this.props.sortType, this.props.limit, this.props.typeFilter, this.state.cursor);
       paginationLink = (
         <div>
-          <a href={link}>Next</a>
+          <a href={link} role="button" className="btn btn-info">Next</a>
         </div>
       );
     }

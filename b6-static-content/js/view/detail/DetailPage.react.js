@@ -59,7 +59,8 @@ export default class DetailPage extends Component<{},
     if (item.book.downloadItems.length === 0) {
       downloadUi = (
         <div>
-          <p className="text-muted">No Downloads</p>
+          <hr/>
+          <small className="text-muted">No downloads for this item.</small>
         </div>
       );
     } else {
