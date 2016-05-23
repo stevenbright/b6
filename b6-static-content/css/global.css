@@ -88,7 +88,7 @@ ul.catalog-list {
   padding: 0;
 }
 
-ul.catalog-list li {
+ul.catalog-list > li {
   border-top: 1px solid #eee;
   padding-bottom: 1rem;
 }
@@ -107,6 +107,25 @@ table.item-info > tbody > tr > td:first-child {
 
 .inline-item {
   padding-left: 0.3rem;
+}
+
+/* Inline CSV (Comma-Separated Value) List */
+
+.csv {
+  display: inline;
+  padding-left: 0;
+}
+
+.csv > li {
+  display: inline;
+}
+
+.csv > li:before {
+  content: ',\0000a0'; /* Non-breaking space */
+}
+
+.csv > li:first-child:before {
+  content: normal;
 }
 
 /* Named Value Element (see InlineCatalogItemWithId) */

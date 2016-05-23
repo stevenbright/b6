@@ -243,6 +243,15 @@ public final class StubCatalogRestService implements CatalogRestService {
         .addGenres(lookupNamed("A0020")).addGenres(lookupNamed("A0030"))
         .setLanguage(lookupNamed("ARU"))
         .addAuthors(lookupNamed("A1005")).addAuthors(lookupNamed("A1006"))
+        .addOrigins(lookupNamed("A0730"))
+        .addDownloadItems(Catalog.DownloadItems.newBuilder()
+            .setDownloadUrl("https://www.quora.com/robots.txt")
+            .setFileSize(6540)
+            .setDescriptorText("FB2"))
+        .addDownloadItems(Catalog.DownloadItems.newBuilder()
+            .setDownloadUrl("https://www.google.com/robots.txt")
+            .setFileSize(3245)
+            .setDescriptorText("TXT"))
         .build()).build());
 
     items.add(catalogItemBuilder("A9038", "book", "Monday Begins on Saturday").setBook(Catalog.Book.newBuilder()

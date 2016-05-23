@@ -3,14 +3,13 @@
 import React, {Component} from 'react';
 
 import FavStar from '../common/FavStar.react';
-import InlineCatalogItem from './InlineCatalogItem.react';
+import InlineNamedItemList from '../common/InlineNamedItemList.react';
 
 export default class CatalogListItem extends Component<{},
   /*Props*/{ item: object },
   /*State*/{}> {
 
   render(): ?ReactElement {
-    // {id: 1, title: 'Item Name', type: 'book', book: { authors: [{id: 2, name: 'as'}] }}
     const item = this.props.item;
     const itemDetailPageUrl = '#/item/' + item.id;
     const isFavorite = item.isFavorite;
@@ -19,14 +18,11 @@ export default class CatalogListItem extends Component<{},
     let profileUi = [];
     if ("book" in item) {
       const profile = item.book;
-      const authorsUi = profile.authors.map((author) => (<InlineCatalogItem key={author.id} item={author} />));
-      const genresUi = profile.genres.map((genre) => (<InlineCatalogItem key={genre.id} item={genre} />));
-
       profileUi = (
         <span className="related-items">
           <span className="glyphicon glyphicon-book" ariaHidden="true"></span>
-          <span className="related-items-header">Authors:&nbsp;</span>{authorsUi}
-          <span className="related-items-header">Genres:&nbsp;</span>{genresUi}
+          <span className="related-items-header">Authors:&nbsp;</span><InlineNamedItemList items={profile.authors}/>
+          <span className="related-items-header">Genres:&nbsp;</span><InlineNamedItemList items={profile.genres}/>
         </span>
       );
     }

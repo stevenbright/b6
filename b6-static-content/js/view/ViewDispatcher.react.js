@@ -94,7 +94,6 @@ export default class ViewDispatcher extends Component<{}, {}, /*State*/{}> {
             limit={this.state.limit}/>);
 
       case Nav.DETAIL:
-        TitleService.setTitle("Details");
         return (<DetailPage id={this.state.id} />);
 
       case Nav.ABOUT:
