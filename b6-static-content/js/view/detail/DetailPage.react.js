@@ -7,15 +7,15 @@ import CatalogService from '../../service/CatalogService';
 
 import LoadingPage from '../common/LoadingPage.react';
 import InlineNamedItemList from '../common/InlineNamedItemList.react';
+import CatalogList from '../catalog/CatalogList.react';
 
 export default class DetailPage extends Component<{},
   /*Props*/{ /*id: string*/ },
   /*State*/{}> {
 
   state = {
-    loading: true,
-    loadingRelatedItems: true,
-    item: null
+    item: null,
+    relatedItems: null
   }
 
   componentDidMount(): void {
@@ -27,7 +27,7 @@ export default class DetailPage extends Component<{},
   }
 
   render(): ReactElement {
-    if (this.state.loading) {
+    if (this.state.item == null) {
       TitleService.setTitle("Loading Item Profile...");
       return (<LoadingPage target='Item'/>);
     }
@@ -35,7 +35,7 @@ export default class DetailPage extends Component<{},
     const item = this.state.item;
     TitleService.setTitle("Item \u00BB " + item.title);
 
-    console.log('Item Page', item);
+    console.log('Item Page:', item, ', Related Items:', this.state.relatedItems);
 
     return (
       <div className="container">
@@ -110,10 +110,19 @@ export default class DetailPage extends Component<{},
   }
 
   _renderNamed(item): ReactElement {
+    if (this.state.relatedItems == null) {
+      return (
+        <div>
+          <hr/>
+          <p>Loading related items...</p>
+        </div>
+      );
+    }
+
     return (
       <div>
-        <hr/>
-        <p>TODO: Loading related items ...</p>
+        <h3>Related Items</h3>
+        <CatalogList items={this.state.relatedItems} />
       </div>
     );
   }
@@ -121,8 +130,16 @@ export default class DetailPage extends Component<{},
   _fetch(props): void {
     const p = CatalogService.getItem(props.id);
     p.then(
-      (response) => this.setState({ item: response['item'], loading: false }),
+      (response) => this.setState({ item: response['item'] }),
       (err) => console.log("Error:", err));
+    p.then((response) => {
+      const item = response['item'];
+      const relatedItemPromise = CatalogService.getItems({
+        'relatedItemId': item.id,
+        'limit': 5 // TODO: proper limit
+      });
+      relatedItemPromise.then((r) => this.setState({ relatedItems: r['items'] }));
+    });
   }
 }
 

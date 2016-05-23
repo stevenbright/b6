@@ -61,12 +61,16 @@ enum SortType {
 }
 
 message GetItemsRequest {
-  string cursor = 1;
-  int32 limit = 2;
+  string relatedItemId = 1;
 
-  SortType sortType = 3;
-  string typeFilter = 4;
-  string nameFilter = 5;
+  // pagination
+  string cursor = 2;
+  int32 limit = 3;
+
+  // filtering + sorting
+  string typeFilter = 5;
+  string nameFilter = 6;
+  SortType sortType = 4;
 }
 
 message GetItemsReply {

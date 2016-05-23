@@ -3,12 +3,7 @@ package b6.website.rpc;
 import b6.catalog.model.Catalog;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -18,7 +13,8 @@ public final class StubCatalogRestService implements CatalogRestService {
 
   public static final int DEFAULT_LIMIT = 16;
 
-  private List<Catalog.CatalogItem> items = new ArrayList<>(100);
+  private final List<Catalog.CatalogItem> items = new ArrayList<>(100);
+  private final Map<String, Set<String>> relations = new HashMap<>(100);
 
   public StubCatalogRestService() {
     addSampleItems();
@@ -50,15 +46,14 @@ public final class StubCatalogRestService implements CatalogRestService {
     final Catalog.SortType sortType = request.getSortType() == null ? Catalog.SortType.DEFAULT : request.getSortType();
     final Optional<Catalog.CatalogItem> cursorItem = items.stream()
         .filter(item -> item.getId().equals(request.getCursor())).findFirst();
+    final Set<String> relatedItemIds = relations.get(request.getRelatedItemId());
 
     final List<Catalog.CatalogItem> resultItems = items
         .stream()
         .filter(item -> {
-          if (StringUtils.hasLength(request.getNameFilter()) && !item.getTitle().startsWith(request.getNameFilter())) {
-            return false;
-          }
-
-          if (StringUtils.hasLength(request.getTypeFilter()) && !item.getType().equals(request.getTypeFilter())) {
+          if ((StringUtils.hasLength(request.getTypeFilter()) && !item.getType().equals(request.getTypeFilter())) ||
+              (StringUtils.hasLength(request.getNameFilter()) && !item.getTitle().startsWith(request.getNameFilter())) ||
+              ((relatedItemIds != null) && !relatedItemIds.contains(item.getId()))) {
             return false;
           }
 
@@ -344,6 +339,7 @@ public final class StubCatalogRestService implements CatalogRestService {
     Collections.shuffle(items);
 
     checkForDuplicates();
+    buildRelations();
   }
 
   private void checkForDuplicates() {
@@ -353,6 +349,36 @@ public final class StubCatalogRestService implements CatalogRestService {
       if (oldItem != null) {
         throw new AssertionError("Duplicate id=" + item.getId() + ", old=" + oldItem + ", new=" + item);
       }
+    }
+  }
+
+  private void buildRelations() {
+    relations.clear();
+
+    for (final Catalog.CatalogItem item : items) {
+      final Catalog.Book book = item.getBook();
+      if (book == null) {
+        continue;
+      }
+
+      addBookRelation(relations, item.getId(), book.getAuthorsList());
+      addBookRelation(relations, item.getId(), book.getOriginsList());
+      addBookRelation(relations, item.getId(), book.getGenresList());
+      addBookRelation(relations, item.getId(), Collections.singletonList(book.getLanguage()));
+    }
+  }
+
+  private static void addBookRelation(Map<String, Set<String>> relations,
+                                      String target,
+                                      Iterable<Catalog.Named> sources) {
+    for (final Catalog.Named source : sources) {
+      Set<String> ids = relations.get(source.getId());
+      if (ids == null) {
+        ids = new HashSet<>();
+        relations.put(source.getId(), ids);
+      }
+
+      ids.add(target);
     }
   }
 }
