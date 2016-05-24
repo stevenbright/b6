@@ -16,8 +16,7 @@ export default class CatalogPage extends Component<{},
   /*State*/{}> {
 
   state = {
-    loading: true,
-    items: []
+    items: null
   }
 
   componentDidMount(): void {
@@ -29,7 +28,7 @@ export default class CatalogPage extends Component<{},
   }
 
   render(): ?ReactElement {
-    if (this.state.loading) {
+    if (this.state.items == null) {
       return (<LoadingPage target='Catalog'/>);
     }
 
@@ -80,7 +79,7 @@ export default class CatalogPage extends Component<{},
 
     const p = CatalogService.getItems(request);
     p.then(
-      (response) => this.setState({ items: response['items'], cursor: response['cursor'], loading: false }),
+      (response) => this.setState({ items: response['items'], cursor: response['cursor'] }),
       (err) => console.log("Error:", err));
   }
 }

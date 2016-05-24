@@ -38,11 +38,11 @@ export default class DetailPage extends Component<{},
     const item = this.state.item;
     TitleService.setTitle("Item \u00BB " + item.title);
 
-    console.log('Item Page:', item, ', Related Items:', this.state.relatedItems);
+    const itemHref = '#/item/' + item.id;
 
     return (
       <div className="container">
-        <h2>{item.title}</h2>
+        <h2><a href={itemHref} title={item.title}>{item.title}</a></h2>
         <p><small>{item.id} | {item.type}</small></p>
         {this._renderItem(item)}
       </div>
@@ -151,13 +151,11 @@ export default class DetailPage extends Component<{},
   _fetch(props): void {
     let p;
     if (this.state.item == null || this.state.item.id != props.id) {
-      console.log('before getItem');
       p = CatalogService.getItem(props.id);
       p.then(
         (response) => this.setState({ item: response['item'] }),
         (err) => console.log("Error:", err));
     } else {
-      console.log('skipping getItem');
       p = new Promise((resolve, _) => {
         resolve({'item': this.state.item});
       });
