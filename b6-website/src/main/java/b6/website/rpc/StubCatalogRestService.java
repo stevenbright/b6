@@ -356,11 +356,11 @@ public final class StubCatalogRestService implements CatalogRestService {
     relations.clear();
 
     for (final Catalog.CatalogItem item : items) {
-      final Catalog.Book book = item.getBook();
-      if (book == null) {
+      if (!item.hasBook()) {
         continue;
       }
 
+      final Catalog.Book book = item.getBook();
       addBookRelation(relations, item.getId(), book.getAuthorsList());
       addBookRelation(relations, item.getId(), book.getOriginsList());
       addBookRelation(relations, item.getId(), book.getGenresList());

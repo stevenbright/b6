@@ -16,4 +16,12 @@ public final class StubCatalogRestServiceTest {
     final Catalog.GetItemsReply reply = catalogService.getItems(Catalog.GetItemsRequest.newBuilder().build());
     assertTrue(reply.getItemsCount() > 0);
   }
+
+  @Test
+  public void shouldGetBooks() {
+    final Catalog.GetItemsReply reply = catalogService.getItems(Catalog.GetItemsRequest.newBuilder()
+        .setTypeFilter("book")
+        .build());
+    assertTrue(reply.getItemsCount() > 0);
+  }
 }
