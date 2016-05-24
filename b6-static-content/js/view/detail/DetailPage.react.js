@@ -9,13 +9,16 @@ import LoadingPage from '../common/LoadingPage.react';
 import InlineNamedItemList from '../common/InlineNamedItemList.react';
 import CatalogList from '../catalog/CatalogList.react';
 
+import {ALL_TYPE_FILTER, MISSING_CURSOR, DEFAULT_SORT_TYPE} from '../../util/Constants';
+
 export default class DetailPage extends Component<{},
   /*Props*/{ /*id: string*/ },
   /*State*/{}> {
 
   state = {
     item: null,
-    relatedItems: null
+    relatedItems: null,
+    relatedItemsCursor: null
   }
 
   componentDidMount(): void {
@@ -122,23 +125,72 @@ export default class DetailPage extends Component<{},
     return (
       <div>
         <h3>Related Items</h3>
-        <CatalogList items={this.state.relatedItems} />
+        <CatalogList items={this.state.relatedItems} cursor={this.state.relatedItemsCursor} createCatalogUrl={this._createCatalogUrl} />
       </div>
     );
   }
 
+  _createCatalogUrl = (params) => {
+    const req = {
+      sortType: this.props.sortType,
+      limit: this.props.limit,
+      typeFilter: this.props.typeFilter,
+      cursor: this.state.relatedItemsCursor
+    }
+
+    params = params || {};
+    for (const key in params) {
+      if (params.hasOwnProperty(key)) {
+        req[key] = params[key];
+      }
+    }
+
+    return '#/item/' + this.props.id + '/s/' + req.sortType + '/l/' + req.limit + '/t/' + req.typeFilter + '/c/' + req.cursor;
+  }
+
   _fetch(props): void {
-    const p = CatalogService.getItem(props.id);
-    p.then(
-      (response) => this.setState({ item: response['item'] }),
-      (err) => console.log("Error:", err));
+    let p;
+    if (this.state.item == null || this.state.item.id != props.id) {
+      console.log('before getItem');
+      p = CatalogService.getItem(props.id);
+      p.then(
+        (response) => this.setState({ item: response['item'] }),
+        (err) => console.log("Error:", err));
+    } else {
+      console.log('skipping getItem');
+      p = new Promise((resolve, _) => {
+        resolve({'item': this.state.item});
+      });
+    }
+
     p.then((response) => {
       const item = response['item'];
-      const relatedItemPromise = CatalogService.getItems({
+
+      // TODO: common code with CatalogPage._fetch
+      const request = {
+        //'nameFilter': 'T',
         'relatedItemId': item.id,
-        'limit': 5 // TODO: proper limit
-      });
-      relatedItemPromise.then((r) => this.setState({ relatedItems: r['items'] }));
+        'limit': props.limit
+      };
+
+      if (props.cursor != MISSING_CURSOR) {
+        request['cursor'] = props.cursor;
+      }
+
+      if (props.typeFilter != ALL_TYPE_FILTER) {
+        request['typeFilter'] = props.typeFilter;
+      }
+
+      if (props.sortType != DEFAULT_SORT_TYPE) {
+        request['sortType'] = props.sortType;
+      }
+
+      const relatedItemPromise = CatalogService.getItems(request);
+      //items: response['items'], cursor: response['cursor']
+      relatedItemPromise.then((r) => this.setState({
+        relatedItems: r['items'],
+        relatedItemsCursor: r['cursor']
+      }));
     });
   }
 }

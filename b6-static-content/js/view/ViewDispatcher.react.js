@@ -56,8 +56,24 @@ export default class ViewDispatcher extends Component<{}, {}, /*State*/{}> {
       limit: parseInt(limit)
     });
 
+    const gotoDetailPageWithParams = (id, sortType, limit, typeFilter, cursor) => this.setState({
+      nowShowing: Nav.DETAIL,
+      id,
+      typeFilter,
+      cursor,
+      sortType,
+      limit: parseInt(limit)
+    });
+    const gotoDetailPage = (id) => this.setState({
+      nowShowing: Nav.DETAIL,
+      id,
+      typeFilter: ALL_TYPE_FILTER,
+      cursor: MISSING_CURSOR,
+      sortType: DEFAULT_SORT_TYPE,
+      limit: DEFAULT_LIMIT
+    });
+
     const gotoAboutPage = this.setState.bind(this, {nowShowing: Nav.ABOUT});
-    const gotoDetailPage = (id) => this.setState({nowShowing: Nav.DETAIL, id: id});
 
     // TODO: disable in prod
     const gotoDemoPage = this.setState.bind(this, {nowShowing: Nav.DEMO});
@@ -68,8 +84,11 @@ export default class ViewDispatcher extends Component<{}, {}, /*State*/{}> {
       '/catalog/s/:sort/l/:limit/t/:type/c/:cursor': gotoCatalogPageWithParams,
       '/catalog': gotoCatalogPage,
 
-      '/demo': gotoDemoPage,
+      '/item/:id/s/:sort/l/:limit/t/:type/c/:cursor': gotoDetailPageWithParams,
       '/item/:id': gotoDetailPage,
+
+
+      '/demo': gotoDemoPage,
       '/about': gotoAboutPage
     });
 
@@ -91,10 +110,20 @@ export default class ViewDispatcher extends Component<{}, {}, /*State*/{}> {
             typeFilter={this.state.typeFilter}
             sortType={this.state.sortType}
             cursor={this.state.cursor}
-            limit={this.state.limit}/>);
+            limit={this.state.limit}
+            />
+        );
 
       case Nav.DETAIL:
-        return (<DetailPage id={this.state.id} />);
+        return (
+          <DetailPage
+            id={this.state.id}
+            typeFilter={this.state.typeFilter}
+            sortType={this.state.sortType}
+            cursor={this.state.cursor}
+            limit={this.state.limit}
+            />
+        );
 
       case Nav.ABOUT:
         TitleService.setTitle("About");

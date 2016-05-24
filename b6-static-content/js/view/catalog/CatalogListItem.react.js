@@ -27,13 +27,15 @@ export default class CatalogListItem extends Component<{},
       );
     }
 
+    const hrefTitle = item.id + ' | ' + item.title;
+
     return (
       <li>
         <div className="container">
           <div className="row">
             <div className="col-md-12">
-              <p className="pull-right"><span className="label label-default">{item.type}</span><small className="text-muted">&nbsp;|&nbsp;{item.id}</small></p>
-              <h4 className="pull-left"><a href={itemDetailPageUrl} title={item.title}>{item.title}</a></h4>
+              <p className="pull-right"><span className="label label-default">{item.type}</span></p>
+              <h4 className="pull-left"><a href={itemDetailPageUrl} title={hrefTitle}>{item.title}</a></h4>
             </div>
           </div>
           <div className="row">

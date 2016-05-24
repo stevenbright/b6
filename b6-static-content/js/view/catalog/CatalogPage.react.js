@@ -9,10 +9,6 @@ import LoadingPage from '../common/LoadingPage.react';
 
 import CatalogService from '../../service/CatalogService';
 
-function createCatalogUrl(sortType, limit, typeFilter, cursor) {
-  return '#/catalog/s/' + sortType + '/l/' + limit + '/t/' + typeFilter + '/c/' + cursor;
-}
-
 export default class CatalogPage extends Component<{},
   /*Props*/{
     /*limit: number, typeFilter: string, nameFilter: string, cursor: string*/
@@ -37,53 +33,34 @@ export default class CatalogPage extends Component<{},
       return (<LoadingPage target='Catalog'/>);
     }
 
-    let paginationLink = [];
-    if (this.state.cursor != null) {
-      const link = createCatalogUrl(this.props.sortType, this.props.limit, this.props.typeFilter, this.state.cursor);
-      paginationLink = (
-        <div>
-          <a href={link} role="button" className="btn btn-info">Next</a>
-        </div>
-      );
-    }
-
-    const getTypeFilterUrl = (typeFilter) => {
-      return createCatalogUrl(this.props.sortType, this.props.limit, typeFilter, MISSING_CURSOR);
-    }
-
-    const getSortTypeUrl = (sortType) => {
-      return createCatalogUrl(sortType, this.props.limit, this.props.typeFilter, MISSING_CURSOR);
-    }
-
     return (
       <div className="container">
         <h2>Catalog</h2>
-
-        <div className="btn-toolbar" role="toolbar">
-          <div className="btn-group btn-group-xs" role="group">
-            <a href={getTypeFilterUrl(ALL_TYPE_FILTER)} role="button" className="btn btn-default">All</a>
-            <a href={getTypeFilterUrl('book')} role="button" className="btn btn-default">Book</a>
-            <a href={getTypeFilterUrl('person')} role="button" className="btn btn-default">Person</a>
-            <a href={getTypeFilterUrl('genre')} role="button" className="btn btn-default">Genre</a>
-            <a href={getTypeFilterUrl('origin')} role="button" className="btn btn-default">Origin</a>
-            <a href={getTypeFilterUrl('language')} role="button" className="btn btn-default">Language</a>
-          </div>
-          <div className="btn-group btn-group-xs" role="group">
-            <a href={getSortTypeUrl(DEFAULT_SORT_TYPE)} role="button" className="btn btn-default">No Sort</a>
-            <a href={getSortTypeUrl('TITLE_ASCENDING')} role="button" className="btn btn-default">Sort: A-Z</a>
-            <a href={getSortTypeUrl('TITLE_DESCENDING')} role="button" className="btn btn-default">Sort: Z-A</a>
-          </div>
-        </div>
-        <br/>
-
-        <CatalogList items={this.state.items} />
-        <hr/>
-        {paginationLink}
+        <CatalogList items={this.state.items} cursor={this.state.cursor} createCatalogUrl={this._createCatalogUrl} />
       </div>
     );
   }
 
+  _createCatalogUrl = (params) => {
+    const req = {
+      sortType: this.props.sortType,
+      limit: this.props.limit,
+      typeFilter: this.props.typeFilter,
+      cursor: this.state.cursor
+    }
+
+    params = params || {};
+    for (const key in params) {
+      if (params.hasOwnProperty(key)) {
+        req[key] = params[key];
+      }
+    }
+
+    return '#/catalog/s/' + req.sortType + '/l/' + req.limit + '/t/' + req.typeFilter + '/c/' + req.cursor;
+  }
+
   _fetch(props): void {
+    // TODO: common code with DetailPage._fetch
     const request = {
       //'nameFilter': 'T',
       'limit': props.limit
