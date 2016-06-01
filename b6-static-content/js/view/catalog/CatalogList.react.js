@@ -14,8 +14,6 @@ export default class CatalogList extends Component<{},
       return (<CatalogListItem key={item.id} item={item}/>);
     });
 
-
-
     return (
       <div className="container">
         {this._getCatalogQueryUi()}

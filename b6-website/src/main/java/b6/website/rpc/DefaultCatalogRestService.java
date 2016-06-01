@@ -16,4 +16,14 @@ public final class DefaultCatalogRestService implements CatalogRestService {
   public Catalog.GetItemsReply getItems(Catalog.GetItemsRequest request) {
     throw new UnsupportedOperationException();
   }
+
+  @Override
+  public Catalog.SetFavoriteReply setFavorite(Catalog.SetFavoriteRequest request) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Catalog.GetFavoriteItemsReply getFavoriteItems(Catalog.GetFavoriteItemsRequest request) {
+    throw new UnsupportedOperationException();
+  }
 }

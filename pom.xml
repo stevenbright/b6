@@ -30,9 +30,6 @@
 
     <awssdk.version>1.9.13</awssdk.version>
 
-    <!--<spring.version>3.2.14.RELEASE</spring.version>-->
-    <!--<spring-security.version>3.2.3.RELEASE</spring-security.version>-->
-
     <lombok-plugin.version>1.16.8.0</lombok-plugin.version>
 
     <brikar.version>1.4.23-SNAPSHOT</brikar.version>

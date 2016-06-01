@@ -3,7 +3,7 @@
 import React, {Component} from 'react';
 
 type Props = {
-  id: number,
+  id: string,
   type: string,
   isFavorite: bool
 };

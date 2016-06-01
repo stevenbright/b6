@@ -8,6 +8,7 @@ import CatalogService from '../../service/CatalogService';
 import LoadingPage from '../common/LoadingPage.react';
 import InlineNamedItemList from '../common/InlineNamedItemList.react';
 import CatalogList from '../catalog/CatalogList.react';
+import FavStar from '../common/FavStar.react';
 
 import {ALL_TYPE_FILTER, MISSING_CURSOR, DEFAULT_SORT_TYPE} from '../../util/Constants';
 
@@ -43,7 +44,10 @@ export default class DetailPage extends Component<{},
     return (
       <div className="container">
         <h2><a href={itemHref} title={item.title}>{item.title}</a></h2>
-        <p><small>{item.id} | {item.type}</small></p>
+        <div>
+          <p className="pull-right"><small>{item.id} | {item.type}</small></p>
+          <FavStar id={item.id} type={item.type} isFavorite={item.isFavorite}/>
+        </div>
         {this._renderItem(item)}
       </div>
     );

@@ -86,6 +86,48 @@ public final class StubCatalogRestService implements CatalogRestService {
     return builder.addAllItems(resultItems).build();
   }
 
+  @Override
+  public Catalog.SetFavoriteReply setFavorite(Catalog.SetFavoriteRequest request) {
+    final boolean isFavorite = request.getIsFavorite();
+    final String itemId = request.getItemId();
+
+    final Optional<Catalog.CatalogItem> itemOpt = items.stream().filter(i -> i.getId().equals(itemId)).findFirst();
+    if (itemOpt.isPresent()) {
+      final Catalog.CatalogItem oldItem = itemOpt.get();
+      final int index = items.indexOf(oldItem);
+      if (index < 0) {
+        throw new IllegalStateException("index < 0");
+      }
+
+      items.set(index, Catalog.CatalogItem.newBuilder(oldItem).setIsFavorite(isFavorite).build());
+    }
+
+    return Catalog.SetFavoriteReply.newBuilder()
+        .setIsFavorite(isFavorite)
+        .build();
+  }
+
+  @Override
+  public Catalog.GetFavoriteItemsReply getFavoriteItems(Catalog.GetFavoriteItemsRequest request) {
+    final int size = request.getLimit() == 0 ? DEFAULT_LIMIT : Math.min(DEFAULT_LIMIT, request.getLimit());
+    final String cursor = request.getCursor();
+
+    final List<Catalog.CatalogItem> resultItems = items
+        .stream()
+        .filter(item -> !((cursor != null) && !(cursor.compareTo(item.getId()) < 0)) && item.getIsFavorite())
+        .sorted((lhs, rhs) -> lhs.getId().compareTo(rhs.getId()))
+        .limit(size)
+        .collect(Collectors.toList());
+
+    final Catalog.GetFavoriteItemsReply.Builder resultBuilder = Catalog.GetFavoriteItemsReply.newBuilder()
+        .addAllItems(resultItems);
+    if (items.size() == size) {
+      resultBuilder.setCursor(items.get(items.size() - 1).getId());
+    }
+
+    return resultBuilder.build();
+  }
+
   //
   // Private
   //

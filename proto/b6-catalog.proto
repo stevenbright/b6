@@ -67,10 +67,12 @@ message GetItemsRequest {
   string cursor = 2;
   int32 limit = 3;
 
-  // filtering + sorting
+  // filtering
   string typeFilter = 5;
   string nameFilter = 6;
-  SortType sortType = 4;
+
+  // sorting
+  SortType sortType = 7;
 }
 
 message GetItemsReply {
@@ -78,4 +80,23 @@ message GetItemsReply {
   repeated CatalogItem items = 2;
 }
 
+message SetFavoriteRequest {
+  string itemId = 1;
+  bool isFavorite = 2;
+}
 
+message SetFavoriteReply {
+  bool isFavorite = 1;
+}
+
+message GetFavoriteItemsRequest {
+  // pagination
+  string cursor = 1;
+  int32 limit = 2;
+  // TODO: ad hoc ordering
+}
+
+message GetFavoriteItemsReply {
+  string cursor = 1;
+  repeated CatalogItem items = 2;
+}
