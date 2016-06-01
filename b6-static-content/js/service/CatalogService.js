@@ -33,6 +33,15 @@ class CatalogService {
     console.log('getItems : request =', request);
     return exec('getItems', request);
   }
+
+  setFavorite(id: string, isFavorite: boolean): Promise {
+    return exec('setFavorite', {'itemId': id, 'isFavorite': isFavorite});
+  }
+
+  getFavoriteItems(request): Promise {
+    console.log('getFavoriteItems : request =', request);
+    return exec('getFavoriteItems', request);
+  }
 };
 
 export default new CatalogService();

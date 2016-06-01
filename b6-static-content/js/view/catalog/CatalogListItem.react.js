@@ -40,7 +40,7 @@ export default class CatalogListItem extends Component<{},
           </div>
           <div className="row">
             <div className="col-md-2">
-              <FavStar id={item.id} type={item.type} isFavorite={isFavorite}/>
+              <FavStar id={item.id} isFavorite={isFavorite}/>
             </div>
             <div className="col-md-10">
               {profileUi}

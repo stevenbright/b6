@@ -46,7 +46,7 @@ export default class DetailPage extends Component<{},
         <h2><a href={itemHref} title={item.title}>{item.title}</a></h2>
         <div>
           <p className="pull-right"><small>{item.id} | {item.type}</small></p>
-          <FavStar id={item.id} type={item.type} isFavorite={item.isFavorite}/>
+          <FavStar id={item.id} isFavorite={item.isFavorite}/>
         </div>
         {this._renderItem(item)}
       </div>
