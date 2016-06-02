@@ -2,6 +2,8 @@
 
 import React, {Component} from 'react';
 
+import {MISSING_CURSOR} from '../../util/Constants';
+
 import TitleService from '../../service/TitleService';
 import CatalogService from '../../service/CatalogService';
 
@@ -9,11 +11,14 @@ import LoadingPage from '../common/LoadingPage.react';
 import CatalogListItem from '../catalog/CatalogListItem.react';
 
 export default class DetailPage extends Component<{},
-  /*Props*/{ /*id: string*/ },
+  /*Props*/{
+    /*limit: number, cursor: string*/
+  },
   /*State*/{}> {
 
   state = {
-    items: null
+    items: null,
+    cursor: null
   }
 
   componentDidMount(): void {
@@ -38,14 +43,12 @@ export default class DetailPage extends Component<{},
 
     return (
       <div className="container">
-        <p><strong>Storefront</strong>&nbsp;Page</p>
-        <div className="well">
-          Lorem ipsum
-        </div>
         <h3>Favorites</h3>
         <ul className="catalog-list">
           {itemsUi}
         </ul>
+        <hr/>
+        {this._getPaginationLink()}
       </div>
     );
   }
@@ -54,10 +57,31 @@ export default class DetailPage extends Component<{},
   // Private
   //
 
+  _getPaginationLink() {
+    if (this.state.cursor != null) {
+      const link = '#/storefront/l/' + this.props.limit + '/c/' + this.state.cursor;
+      return (
+        <div>
+          <a href={link} role="button" className="btn btn-info">Next</a>
+        </div>
+      );
+    } else {
+      return [];
+    }
+  }
+
   _fetch(props): void {
-    const p = CatalogService.getFavoriteItems({});
+    const request = {
+      'limit': props.limit
+    };
+
+    if (props.cursor != MISSING_CURSOR) {
+      request['cursor'] = props.cursor;
+    }
+
+    const p = CatalogService.getFavoriteItems(request);
     p.then((response) => {
-      this.setState({items: response["items"]});
+      this.setState({items: response["items"], cursor: response["cursor"]});
     });
   }
 }

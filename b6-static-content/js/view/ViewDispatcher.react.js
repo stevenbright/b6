@@ -39,7 +39,16 @@ export default class ViewDispatcher extends Component<{}, {}, /*State*/{}> {
   }
 
   componentDidMount(): void {
-    const gotoStorefrontPage = this.setState.bind(this, {nowShowing: Nav.STOREFRONT});
+    const gotoStorefrontPage = this.setState.bind(this, {
+      nowShowing: Nav.STOREFRONT,
+      cursor: MISSING_CURSOR,
+      limit: DEFAULT_LIMIT
+    });
+    const gotoStorefrontPageWithParams = (limit, cursor) => this.setState({
+      nowShowing: Nav.STOREFRONT,
+      cursor,
+      limit: parseInt(limit)
+    });
 
     const gotoCatalogPage = this.setState.bind(this, {
       nowShowing: Nav.CATALOG,
@@ -80,6 +89,7 @@ export default class ViewDispatcher extends Component<{}, {}, /*State*/{}> {
 
     const router = Router({
       '/storefront': gotoStorefrontPage,
+      '/storefront/l/:limit/c/:cursor': gotoStorefrontPageWithParams,
 
       '/catalog/s/:sort/l/:limit/t/:type/c/:cursor': gotoCatalogPageWithParams,
       '/catalog': gotoCatalogPage,
@@ -101,7 +111,12 @@ export default class ViewDispatcher extends Component<{}, {}, /*State*/{}> {
     switch (this.state.nowShowing) {
       case Nav.STOREFRONT:
         TitleService.setTitle("Storefront");
-        return (<StorefrontPage />);
+        return (
+          <StorefrontPage
+            cursor={this.state.cursor}
+            limit={this.state.limit}
+            />
+        );
 
       case Nav.CATALOG:
         TitleService.setTitle("Catalog");

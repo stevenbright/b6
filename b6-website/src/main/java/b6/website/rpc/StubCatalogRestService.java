@@ -121,8 +121,8 @@ public final class StubCatalogRestService implements CatalogRestService {
 
     final Catalog.GetFavoriteItemsReply.Builder resultBuilder = Catalog.GetFavoriteItemsReply.newBuilder()
         .addAllItems(resultItems);
-    if (items.size() == size) {
-      resultBuilder.setCursor(items.get(items.size() - 1).getId());
+    if (resultItems.size() == size) {
+      resultBuilder.setCursor(resultItems.get(size - 1).getId());
     }
 
     return resultBuilder.build();
