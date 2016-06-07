@@ -15,4 +15,6 @@ import java.util.List;
 public final class Book implements CatalogItemExtension {
   private final List<Named> authors; // TODO: persons?
   private final List<Named> genres;
+  private final List<Named> languages;
+  private final List<DownloadItem> downloadItems;
 }

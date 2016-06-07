@@ -4,7 +4,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
   <import resource="db-test-context.xml"/>
 
-  <bean class="briefly.website.service.support.DefaultEolaireItemService">
-    <constructor-arg ref="brieflyWebsite.dao.jdbcTemplate" />
+  <bean class="b6.website.service.support.DefaultCatalogService">
+    <constructor-arg ref="b6Website.dao.jdbcTemplate" />
   </bean>
 </beans>

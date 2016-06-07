@@ -11,15 +11,33 @@ CREATE TABLE entity_type (
 
 CREATE TABLE item (
   id                INTEGER PRIMARY KEY,
-  title             VARCHAR(1024) NOT NULL,
   type_id           INTEGER NOT NULL,
+
+  title             VARCHAR(1024) NOT NULL,
   CONSTRAINT fk_item_type FOREIGN KEY (type_id) REFERENCES entity_type(id) ON DELETE CASCADE
 );
 
-CREATE TABLE item_book (
+-- repeated Named authors = 1; - item_relation (author)
+-- repeated Named genres = 2; - item_relation (genre)
+-- repeated Named language = 3; - item_relation (language)
+-- repeated Named origins = 4; - item_relation (origin)
+-- repeated DownloadItems downloadItems = 5;
+
+CREATE TABLE item_download (
   item_id           INTEGER PRIMARY KEY,
-  CONSTRAINT fk_item_book_id FOREIGN KEY (item_id) REFERENCES item(id) ON DELETE CASCADE
+
+  file_size         INTEGER NOT NULL,
+
+  origin_id         INTEGER NOT NULL,
+  download_id       VARCHAR(1024) NOT NULL, -- note origin
+
+  CONSTRAINT fk_item_download_id FOREIGN KEY (item_id) REFERENCES item(id) ON DELETE CASCADE,
+  CONSTRAINT fk_item_download_origin_id FOREIGN KEY (origin_id) REFERENCES item(id) ON DELETE CASCADE
 );
+
+-- string descriptorText = 1;
+-- int32 fileSize = 2;
+-- string downloadUrl = 3;
 
 CREATE TABLE item_relation (
   lhs               INTEGER NOT NULL,
@@ -30,7 +48,6 @@ CREATE TABLE item_relation (
   CONSTRAINT fk_item_relation_rhs FOREIGN KEY (rhs) REFERENCES item(id) ON DELETE CASCADE,
   CONSTRAINT fk_item_relation_type FOREIGN KEY (type_id) REFERENCES entity_type(id) ON DELETE CASCADE
 );
-
 
 --
 -- Sequences

@@ -1,6 +1,6 @@
 package b6.website.rpc;
 
-import b6.catalog.model.Catalog;
+import b6.rpc.model.catalog.Catalog;
 import org.junit.Ignore;
 import org.junit.Test;
 

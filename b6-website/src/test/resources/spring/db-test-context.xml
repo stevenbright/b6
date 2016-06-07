@@ -23,15 +23,15 @@
       <bean class="org.springframework.jdbc.datasource.init.ResourceDatabasePopulator">
         <property name="scripts">
           <array>
-            <value>classpath:/brieflyWebsite/sql/eolaire/eolaire-schema.sql</value>
-            <value>classpath:/brieflyWebsite/sql/eolaire/eolaire-fixture.sql</value>
+            <value>classpath:/b6Website/sql/cat/cat-schema.sql</value>
+            <value>classpath:/b6Website/sql/cat/cat-fixture.sql</value>
           </array>
         </property>
       </bean>
     </property>
   </bean>
 
-  <bean id="brieflyWebsite.dao.dataSource" factory-bean="test.dao.databaseFactory" factory-method="getDatabase" destroy-method="shutdown" />
+  <bean id="b6Website.dao.dataSource" factory-bean="test.dao.databaseFactory" factory-method="getDatabase" destroy-method="shutdown" />
 
-  <import resource="classpath:/brieflyWebsite/spring/dao/dao-context.xml" />
+  <import resource="classpath:/b6Website/spring/dao/dao-context.xml" />
 </beans>
