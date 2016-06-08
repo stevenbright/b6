@@ -26,7 +26,7 @@ message Named {
   string title = 2;
 }
 
-message DownloadItems {
+message DownloadItem {
   string descriptorText = 1;
   int32 fileSize = 2;
   string downloadUrl = 3;
@@ -37,7 +37,7 @@ message Book {
   repeated Named genres = 2;
   Named language = 3;
   repeated Named origins = 4;
-  repeated DownloadItems downloadItems = 5;
+  repeated DownloadItem downloadItems = 5;
 }
 
 //

@@ -5,9 +5,26 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 /**
+ * Tests for {@link Id2Str}.
+ *
  * @author Alexander Shabanov
  */
 public final class Id2StrTest {
+
+  @Test
+  public void shouldGetEmptyStringFromLong() {
+    assertEquals(0, Id2Str.toLong(""));
+  }
+
+  @Test
+  public void shouldGetZeroFromEmptyString() {
+    assertEquals("", Id2Str.fromLong(0));
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void shouldRejectNegativeId() {
+    Id2Str.fromLong(-1);
+  }
 
   @Test
   public void shouldConvertToStringAndBackToLong() {
