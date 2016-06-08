@@ -4,6 +4,7 @@ import b6.model.catalog.CatalogItem;
 import b6.website.model.catalog.SortType;
 
 import javax.annotation.Nonnull;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -22,5 +23,11 @@ public interface CatalogService {
                              @Nonnull SortType sortType,
                              int limit);
 
-  List<Long> persistItems(List<CatalogItem> catalogItems);
+  @Nonnull
+  List<Long> persistItems(@Nonnull List<CatalogItem> catalogItems);
+
+  @Nonnull
+  default Long persistItem(@Nonnull CatalogItem catalogItem) {
+    return persistItems(Collections.singletonList(catalogItem)).get(0);
+  }
 }

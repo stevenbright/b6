@@ -8,9 +8,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static b6.website.model.Ids.isValidId;
 
@@ -114,18 +112,30 @@ public class DefaultCatalogService extends AbstractService implements CatalogSer
     return db.query(qb.toString(), CATALOG_ITEM_ROW_MAPPER, params.toArray(new Object[params.size()]));
   }
 
+  @Nonnull
   @Override
-  public List<Long> persistItems(List<CatalogItem> catalogItems) {
-    final List<Long> result = new ArrayList<>(catalogItems.size());
-
+  public List<Long> persistItems(@Nonnull List<CatalogItem> catalogItems) {
     // get next N IDs
+    final int newIdCount = (int) catalogItems.stream().filter(i -> !isValidId(i.getId())).count();
+    final List<Long> ids = db.queryForList("SELECT seq_item.nextval FROM system_range(1, ?)", Long.class, newIdCount);
 
-    for (final CatalogItem item : catalogItems) {
+    // map IDs
+    final List<Long> result = new ArrayList<>(catalogItems.size());
+    final TypeIdAccessor typeIdAccessor = new TypeIdAccessor();
+    for (int pos = 0, i = 0; i < catalogItems.size(); ++i) {
+      final CatalogItem item = catalogItems.get(i);
+      final Long id;
+      final Long typeId = typeIdAccessor.getTypeId(item.getType());
       if (isValidId(item.getId())) {
         // update
+        id = item.getId();
+        db.update("UPDATE item SET type_id=?, title=? WHERE id=?", typeId, item.getTitle(), id);
       } else {
         // insert
+        id = ids.get(pos++);
+        db.update("INSERT INTO item (id, type_id, title) VALUES (?, ?, ?)", id, typeId, item.getTitle());
       }
+      result.add(id);
     }
 
     return result;
@@ -140,4 +150,18 @@ public class DefaultCatalogService extends AbstractService implements CatalogSer
       .type(rs.getString("type_name"))
       .title(rs.getString("title"))
       .build();
+
+  private final class TypeIdAccessor {
+    final Map<String, Long> cachedIds = new HashMap<>();
+
+    Long getTypeId(String typeName) {
+      Long result = cachedIds.get(typeName);
+      if (result == null) {
+        result = db.queryForObject("SELECT id FROM entity_type WHERE name=?", Long.class, typeName);
+        cachedIds.put(typeName, result);
+      }
+
+      return result;
+    }
+  }
 }
