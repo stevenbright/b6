@@ -3,9 +3,6 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-  <import resource="dao/datasource-context.xml"/>
-  <import resource="dao/tx-context.xml"/>
-  <import resource="dao/dao-context.xml"/>
-
-  <bean class="b6.website.service.support.DefaultCatalogService" autowire="constructor"/>
+  <bean id="b6Website.service.catalogRestService"
+        class="b6.website.rpc.DefaultCatalogRestService" autowire="constructor"/>
 </beans>
