@@ -1,20 +1,25 @@
 package b6.website.service.support;
 
-import b6.model.catalog.CatalogItem;
+import b6.model.catalog.*;
 import b6.website.model.catalog.SortType;
 import b6.website.service.CatalogService;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Nonnull;
+import javax.lang.model.element.Name;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static b6.website.model.Ids.isValidId;
 
 /**
  * @author Alexander Shabanov
  */
+@Transactional(propagation = Propagation.REQUIRED)
 public final class DefaultCatalogService extends AbstractService implements CatalogService {
 
   private final JdbcOperations db;
@@ -25,10 +30,10 @@ public final class DefaultCatalogService extends AbstractService implements Cata
 
   @Nonnull
   public CatalogItem getItem(long id) {
-    return db.queryForObject(
+    return withExtension(db.queryForObject(
         "SELECT i.id, et.name AS type_name, i.title FROM item AS i\n" +
             "INNER JOIN entity_type AS et ON i.type_id=et.id WHERE i.id=?",
-        CATALOG_ITEM_ROW_MAPPER, id);
+        CATALOG_ITEM_ROW_MAPPER, id));
   }
 
   @Override
@@ -109,7 +114,9 @@ public final class DefaultCatalogService extends AbstractService implements Cata
     qb.append("LIMIT ?");
     params.add(limit);
 
-    return db.query(qb.toString(), CATALOG_ITEM_ROW_MAPPER, params.toArray(new Object[params.size()]));
+    return db.query(qb.toString(), CATALOG_ITEM_ROW_MAPPER, params.toArray(new Object[params.size()])).stream()
+        .map(this::withExtension)
+        .collect(Collectors.toList());
   }
 
   @Nonnull
@@ -135,6 +142,21 @@ public final class DefaultCatalogService extends AbstractService implements Cata
         id = ids.get(pos++);
         db.update("INSERT INTO item (id, type_id, title) VALUES (?, ?, ?)", id, typeId, item.getTitle());
       }
+
+      // reinsert links
+      db.update("DELETE item_relation WHERE lhs=?", id);
+      db.update("DELETE item_download WHERE item_id=?", id);
+
+      if (item.getExtension() instanceof Book) {
+        final Book book = (Book) item.getExtension();
+        addRelations(typeIdAccessor, id, book.getGenres(), "genre");
+        addRelations(typeIdAccessor, id, book.getLanguages(), "language");
+        addRelations(typeIdAccessor, id, book.getAuthors(), "author");
+        addDownloadItems(id, book.getDownloadItems());
+      } else if (item.getExtension() != null) {
+        throw new IllegalStateException("Unrecognized extension=" + item.getExtension());
+      }
+
       result.add(id);
     }
 
@@ -145,11 +167,75 @@ public final class DefaultCatalogService extends AbstractService implements Cata
   // Private
   //
 
+  @Nonnull
+  private CatalogItem withExtension(@Nonnull CatalogItem item) {
+    final CatalogItemExtension extension;
+    if (item.getType().equals("book")) {
+      // TODO: return unchanged item if no author/language/genre assigned
+      extension = Book.builder()
+          .authors(getRelatedNamed(item.getId(), "author"))
+          .languages(getRelatedNamed(item.getId(), "language"))
+          .genres(getRelatedNamed(item.getId(), "genre"))
+          .build();
+    } else {
+      extension = null;
+    }
+
+    if (extension == null) {
+      return item; // unchanged
+    }
+
+    return CatalogItem.builder()
+        .id(item.getId())
+        .title(item.getTitle())
+        .type(item.getType())
+        .extension(extension)
+        // TODO: Download items
+        .build();
+  }
+
+  @Nonnull
+  private List<Named> getRelatedNamed(long id, @Nonnull String typeName) {
+    return db.query("SELECT i.id, i.title FROM item AS i\n" +
+        "INNER JOIN item_relation AS ir ON i.id=ir.rhs\n" +
+        "INNER JOIN entity_type AS et ON et.id=ir.type_id\n" +
+        "WHERE ir.lhs=? AND et.name=?\n" +
+        "ORDER BY i.id", NAMED_ITEM_ROW_MAPPER, id, typeName);
+  }
+
+  private void addDownloadItems(long id, @Nonnull List<DownloadItem> downloadItems) {
+    for (final DownloadItem downloadItem : downloadItems) {
+      insertDownloadItem(id, downloadItem);
+    }
+  }
+
+  private void insertDownloadItem(long id, @Nonnull DownloadItem item) {
+    db.update("INSERT INTO item_download (item_id, file_size, origin_id, download_id) VALUES (?, ?, ?, ?)", id,
+        item.getFileSize(), item.getOrigin().getId(), item.getDownloadId());
+  }
+
+  private void addRelations(@Nonnull TypeIdAccessor typeIdAccessor,
+                            long itemId,
+                            @Nonnull List<Named> toList,
+                            @Nonnull String typeName) {
+    for (final Named to : toList) {
+      final long toId = to.getId();
+      addRelation(itemId, toId, typeIdAccessor.getTypeId(typeName));
+    }
+  }
+
+  private void addRelation(long from, long to, long relationType) {
+    db.update("INSERT INTO item_relation (lhs, rhs, type_id) VALUES (?, ?, ?)", from, to, relationType);
+  }
+
   private final RowMapper<CatalogItem> CATALOG_ITEM_ROW_MAPPER = (rs, rowNum) -> CatalogItem.builder()
       .id(rs.getLong("id"))
       .type(rs.getString("type_name"))
       .title(rs.getString("title"))
       .build();
+
+  private final RowMapper<Named> NAMED_ITEM_ROW_MAPPER = (rs, rowNum) ->
+      new Named(rs.getLong("id"), rs.getString("title"));
 
   private final class TypeIdAccessor {
     final Map<String, Long> cachedIds = new HashMap<>();
