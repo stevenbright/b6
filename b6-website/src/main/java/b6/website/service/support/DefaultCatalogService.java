@@ -15,7 +15,7 @@ import static b6.website.model.Ids.isValidId;
 /**
  * @author Alexander Shabanov
  */
-public class DefaultCatalogService extends AbstractService implements CatalogService {
+public final class DefaultCatalogService extends AbstractService implements CatalogService {
 
   private final JdbcOperations db;
 
