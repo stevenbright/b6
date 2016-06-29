@@ -20,7 +20,7 @@ function prepareRequestWithCursorAndLimit(cursor, limit) {
 }
 
 function exec(methodName, requestBody) {
-  return ajax.request('POST', '/rest/CatalogRestService?m=' + methodName, requestBody);
+  return ajax.request('POST', '/rest/rpc/CatalogService/' + methodName, requestBody);
 }
 
 class CatalogService {

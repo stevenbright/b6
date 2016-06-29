@@ -31,6 +31,7 @@
             </list>
           </constructor-arg>
           <constructor-arg ref="b6Website.service.catalogRestService" />
+          <property name="serviceName" value="CatalogService"/>
         </bean>
       </list>
     </property>

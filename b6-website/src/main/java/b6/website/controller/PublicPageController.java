@@ -22,4 +22,9 @@ public final class PublicPageController {
     params.put("currentTime", System.currentTimeMillis());
     return new ModelAndView("page/login", params);
   }
+
+  @RequestMapping("/index")
+  public ModelAndView index() {
+    return new ModelAndView("page/index", "time", System.currentTimeMillis());
+  }
 }

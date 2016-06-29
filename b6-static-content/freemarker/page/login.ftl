@@ -16,20 +16,20 @@
   <div class="col-md-3"></div>
   <div class="col-md-6 well">
 
-  <form method="POST" action="/j_spring_security_check" class="signin-form">
+  <form method="POST" action="/g/execlogin" class="signin-form">
     <h3>Please Sign In</h3>
 
     <div>
       <label for="username-input" class="sr-only">Login</label>
-      <input id="username-input" type="text" class="form-control" name="j_username" placeholder="Login" required autofocus />
+      <input id="username-input" type="text" class="form-control" name="username" placeholder="Login" required autofocus />
     </div>
     <div>
       <label for="password-input" class="sr-only">Password</label>
-      <input id="password-input" type="password" class="form-control" name="j_password" placeholder="Password" required />
+      <input id="password-input" type="password" class="form-control" name="password" placeholder="Password" required />
     </div>
     <div>
       <label for="remember-me-input">
-        <input id="remember-me-input" type="checkbox" name="_spring_security_remember_me" /><span>&nbsp;Remember Me</span>
+        <input id="remember-me-input" type="checkbox" name="remember-me" /><span>&nbsp;Remember Me</span>
       </label>
     </div>
     <div class="button-holder">
