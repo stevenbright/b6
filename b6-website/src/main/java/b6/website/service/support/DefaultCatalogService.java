@@ -3,13 +3,17 @@ package b6.website.service.support;
 import b6.model.catalog.*;
 import b6.website.model.catalog.SortType;
 import b6.website.service.CatalogService;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcOperations;
+import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Nonnull;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -121,13 +125,78 @@ public final class DefaultCatalogService extends AbstractService implements Cata
   @Nonnull
   @Override
   public List<Long> persistItems(@Nonnull List<CatalogItem> catalogItems) {
+    if (catalogItems.isEmpty()) {
+      return Collections.emptyList();
+    }
+
     // get next N IDs
     final int newIdCount = (int) catalogItems.stream().filter(i -> !isValidId(i.getId())).count();
     final List<Long> ids = db.queryForList("SELECT seq_item.nextval FROM system_range(1, ?)", Long.class, newIdCount);
 
-    // map IDs
-    final List<Long> result = new ArrayList<>(catalogItems.size());
+    final List<Long> result = Arrays.asList(new Long[catalogItems.size()]);
+
     final TypeIdAccessor typeIdAccessor = new TypeIdAccessor();
+
+    final int[] ins = db.execute("INSERT INTO item (id, type_id, title) VALUES (?, ?, ?)", (PreparedStatement ps) -> {
+      for (int pos = 0, i = 0; i < catalogItems.size(); ++i) {
+        final CatalogItem item = catalogItems.get(i);
+        if (!isValidId(item.getId())) { // insert scenario
+          final Long id = ids.get(pos++);
+          result.set(i, id);
+          ps.setLong(1, id);
+          ps.setLong(2, typeIdAccessor.getTypeId(item.getType()));
+          ps.setString(3, item.getType());
+          ps.addBatch();
+        }
+      }
+
+      return ps.executeBatch();
+    });
+
+    final int[] upd = db.execute("UPDATE item SET type_id=?, title=? WHERE id=?", (PreparedStatement ps) -> {
+      for (int i = 0; i < catalogItems.size(); ++i) {
+        final CatalogItem item = catalogItems.get(i);
+        if (isValidId(item.getId())) { // update scenario
+          final Long id = item.getId();
+          result.set(i, id);
+          ps.setLong(1, typeIdAccessor.getTypeId(item.getType()));
+          ps.setString(2, item.getType());
+          ps.setLong(3, id);
+          ps.addBatch();
+
+          // TODO: separate statement? - reinsert links on update
+          db.update("DELETE item_relation WHERE lhs=?", id);
+          db.update("DELETE item_download WHERE item_id=?", id);
+        }
+      }
+
+      return ps.executeBatch();
+    });
+
+    // insert item extension
+    final int[] ext = db.execute("UPDATE item SET type_id=?, title=? WHERE id=?", (PreparedStatement ps) -> {
+      for (int i = 0; i < catalogItems.size(); ++i) {
+        final CatalogItem item = catalogItems.get(i);
+        if (isValidId(item.getId())) { // update scenario
+          final Long id = item.getId();
+          result.set(i, id);
+          ps.setLong(1, typeIdAccessor.getTypeId(item.getType()));
+          ps.setString(2, item.getType());
+          ps.setLong(3, id);
+          ps.addBatch();
+
+          // TODO: separate statement? - reinsert links on update
+          db.update("DELETE item_relation WHERE lhs=?", id);
+          db.update("DELETE item_download WHERE item_id=?", id);
+        }
+      }
+
+      return ps.executeBatch();
+    });
+
+    log.debug("Items inserted={}, updated={}", ins, upd);
+
+    // map IDs
     for (int pos = 0, i = 0; i < catalogItems.size(); ++i) {
       final CatalogItem item = catalogItems.get(i);
       final Long id;
@@ -136,16 +205,17 @@ public final class DefaultCatalogService extends AbstractService implements Cata
         // update
         id = item.getId();
         db.update("UPDATE item SET type_id=?, title=? WHERE id=?", typeId, item.getTitle(), id);
+
+        // reinsert links on update
+        db.update("DELETE item_relation WHERE lhs=?", id);
+        db.update("DELETE item_download WHERE item_id=?", id);
       } else {
         // insert
         id = ids.get(pos++);
         db.update("INSERT INTO item (id, type_id, title) VALUES (?, ?, ?)", id, typeId, item.getTitle());
       }
 
-      // reinsert links
-      db.update("DELETE item_relation WHERE lhs=?", id);
-      db.update("DELETE item_download WHERE item_id=?", id);
-
+      // insert extension item
       if (item.getExtension() instanceof Book) {
         final Book book = (Book) item.getExtension();
         addRelations(typeIdAccessor, id, book.getGenres(), "genre");
