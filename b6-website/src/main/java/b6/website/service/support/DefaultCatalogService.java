@@ -47,6 +47,10 @@ public final class DefaultCatalogService extends AbstractService implements Cata
                                     @Nonnull String typeFilter,
                                     @Nonnull SortType sortType,
                                     int limit) {
+    if (!log.isTraceEnabled()) {
+      // quick and dirty implementation
+    }
+
     final StringBuilder qb = new StringBuilder(256);
     final List<Object> params = new ArrayList<>(10);
 
