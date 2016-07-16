@@ -39,10 +39,10 @@ public abstract class BdbEnvironmentTestSupport {
 
   public static DatabaseConfig dbConfig() {
     return new DatabaseConfig()
-        .setTransactional(true)
+        //.setTransactional(true)
+        .setTemporary(true)
         .setAllowCreate(true)
         .setSortedDuplicates(false)
-        .setDeferredWrite(false)
         .setCacheMode(CacheMode.DEFAULT);
   }
 
