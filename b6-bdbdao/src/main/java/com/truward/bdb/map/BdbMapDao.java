@@ -13,27 +13,27 @@ import java.util.function.Supplier;
 /**
  * @author Alexander Shabanov
  */
-public interface BdbMapDao<T> {
+public interface BdbMapDao<TKey, TValue> {
 
   @Nonnull
   Database getDatabase();
 
   @Nullable
-  T get(@Nullable Transaction tx, @Nonnull ByteString key, @Nonnull Supplier<T> defaultValueSupplier);
+  TValue get(@Nullable Transaction tx, @Nonnull TKey key, @Nonnull Supplier<TValue> defaultValueSupplier);
 
   @Nonnull
-  T get(@Nullable Transaction tx, @Nonnull ByteString key);
+  TValue get(@Nullable Transaction tx, @Nonnull TKey key);
 
   @Nonnull
-  List<T> getAsList(@Nullable Transaction tx, @Nonnull ByteString key);
+  List<TValue> getAsList(@Nullable Transaction tx, @Nonnull TKey key);
 
   @Nonnull
-  List<Map.Entry<ByteString, T>> getEntries(@Nullable Transaction tx, int offset, int limit);
+  List<Map.Entry<ByteString, TValue>> getEntries(@Nullable Transaction tx, int offset, int limit);
 
-  void put(@Nullable Transaction tx, @Nonnull ByteString key, @Nonnull T value);
+  void put(@Nullable Transaction tx, @Nonnull TKey key, @Nonnull TValue value);
 
-  void delete(@Nullable Transaction tx, @Nonnull ByteString key);
+  void delete(@Nullable Transaction tx, @Nonnull TKey key);
 
   @Nonnull
-  <V> V query(@Nullable Transaction tx, @Nonnull BdbCursorMapper<V> cursorMapper);
+  <TMappedValue> TMappedValue query(@Nullable Transaction tx, @Nonnull BdbCursorMapper<TMappedValue> cursorMapper);
 }

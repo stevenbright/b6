@@ -1,4 +1,4 @@
-package com.truward.bdb.key;
+package com.truward.bdb.protobuf.key;
 
 import com.google.protobuf.ByteString;
 

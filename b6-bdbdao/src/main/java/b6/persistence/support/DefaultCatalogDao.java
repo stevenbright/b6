@@ -2,73 +2,157 @@ package b6.persistence.support;
 
 import b6.persistence.CatalogDao;
 import b6.persistence.model.generated.B6DB;
+import com.google.common.collect.ImmutableList;
 import com.google.protobuf.ByteString;
 import com.sleepycat.je.*;
-import com.truward.bdb.key.KeyUtil;
+import com.truward.bdb.BdbDatabaseConfigurer;
+import com.truward.bdb.map.BdbMapDao;
 import com.truward.bdb.map.BdbMapDaoSupport;
 import com.truward.bdb.map.MapDaoConfig;
 import com.truward.bdb.mapper.BdbEntryMapper;
+import com.truward.bdb.protobuf.ProtobufBdbMapDaoSupport;
+import com.truward.bdb.protobuf.ProtobufKeyValueSerializer;
+import com.truward.bdb.protobuf.ProtobufMappers;
+import com.truward.bdb.protobuf.key.KeyUtil;
 
 import javax.annotation.Nonnull;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Alexander Shabanov
  */
-public class DefaultCatalogDao implements CatalogDao {
+public final class DefaultCatalogDao implements CatalogDao {
+
   public static final String CATALOG_ITEM_DATABASE_NAME = "CatalogItem";
+  public static final String RELATION_DATABASE_NAME = "Relation";
 
-  private final CatalogItemExtensionDao dao;
+  private final CatalogItemExtensionDao itemDao;
+  private final BdbMapDao<ByteString, B6DB.Relation> relationDao;
+  private static final BdbEntryMapper<B6DB.Relation> RELATION_MAPPER = ProtobufMappers.of(B6DB.Relation.getDefaultInstance());
 
-  public DefaultCatalogDao(@Nonnull Environment environment, @Nonnull DatabaseConfig databaseConfig) {
-    dao = new CatalogItemExtensionDao(environment.openDatabase(null, CATALOG_ITEM_DATABASE_NAME, databaseConfig));
+  public DefaultCatalogDao(@Nonnull Environment environment, @Nonnull BdbDatabaseConfigurer dbConfigurer) {
+    itemDao = new CatalogItemExtensionDao(environment.openDatabase(null, CATALOG_ITEM_DATABASE_NAME, dbConfigurer.createDefaultConfig()
+        .setSortedDuplicates(false)));
+
+    relationDao = new ProtobufBdbMapDaoSupport<>(new MapDaoConfig<>(environment.openDatabase(null,
+        RELATION_DATABASE_NAME, dbConfigurer.createDefaultConfig().setSortedDuplicates(false)), RELATION_MAPPER));
   }
 
   @Override
   public ByteString insert(Transaction tx, B6DB.CatalogItemExtension item) {
     final ByteString key = KeyUtil.randomKey();
-    dao.put(tx, key, item);
+    itemDao.put(tx, key, item);
     return key;
   }
 
   @Override
   public void update(Transaction tx, ByteString id, B6DB.CatalogItemExtension item) {
-    dao.put(tx, id, item);
+    itemDao.put(tx, id, item);
   }
 
   @Override
   public B6DB.CatalogItemExtension getById(Transaction tx, ByteString id) {
-    return dao.get(null, id);
+    return itemDao.get(null, id);
+  }
+
+  @Override
+  public void insertRelation(Transaction tx, B6DB.Relation relation) {
+    // TODO: check relation existence
+    final boolean exists = relationDao.query(tx, (cur, lm) -> {
+      final DatabaseEntry k = new DatabaseEntry();
+      final DatabaseEntry v = new DatabaseEntry();
+      for (OperationStatus s = cur.getFirst(k, v, lm); s == OperationStatus.SUCCESS; s = cur.getNext(k, v, lm)) {
+        final B6DB.Relation r = RELATION_MAPPER.map(k, v);
+        if (r.equals(relation)) {
+          return true;
+        }
+      }
+      return false;
+    });
+
+    if (exists) {
+      return;
+    }
+
+    // insert
+    final ByteString key = KeyUtil.randomKey();
+    relationDao.put(null, key, relation);
+  }
+
+  @Override
+  public List<B6DB.Relation> getRelationsFrom(Transaction tx, ByteString fromId, int offset, int limit) {
+    return queryRelations(tx, offset, limit, (r) -> r.getFromId().equals(fromId));
+  }
+
+  @Override
+  public List<B6DB.Relation> getRelationsTo(Transaction tx, ByteString toId, int offset, int limit) {
+    return queryRelations(tx, offset, limit, (r) -> r.getToId().equals(toId));
   }
 
   //
   // Private
   //
 
-  private static final class CatalogItemExtensionDao extends BdbMapDaoSupport<B6DB.CatalogItemExtension> {
-
-    public CatalogItemExtensionDao(@Nonnull Database database) {
-      super(new MapDaoConfig<>(database, new BdbEntryMapper<B6DB.CatalogItemExtension>() {
-        @Nonnull
-        @Override
-        public B6DB.CatalogItemExtension map(@Nonnull DatabaseEntry key, @Nonnull DatabaseEntry v) throws IOException {
-          try (final ByteArrayInputStream is = new ByteArrayInputStream(v.getData(), v.getOffset(), v.getSize())) {
-            final B6DB.CatalogItemExtension.Builder rb = B6DB.CatalogItemExtension.newBuilder()
-                .setItem(B6DB.CatalogItem.parseDelimitedFrom(is));
-            if (BOOK_TYPE.equals(rb.getItem().getType())) {
-              rb.setBook(B6DB.BookExtension.parseDelimitedFrom(is));
-            }
-            return rb.build();
+  private List<B6DB.Relation> queryRelations(Transaction tx, int offset, int limit, RelationFilter filter) {
+    return relationDao.query(tx, (cur, lm) -> {
+      final DatabaseEntry k = new DatabaseEntry();
+      final DatabaseEntry v = new DatabaseEntry();
+      final List<B6DB.Relation> result = new ArrayList<>();
+      int pos = 0;
+      for (OperationStatus s = cur.getFirst(k, v, lm);
+           s == OperationStatus.SUCCESS && result.size() < limit;
+           s = cur.getNext(k, v, lm)) {
+        final B6DB.Relation relation = RELATION_MAPPER.map(k, v);
+        if (filter.matches(relation)) {
+          if (pos >= offset) {
+            result.add(relation);
           }
+          ++pos;
         }
-      }));
+      }
+
+      return ImmutableList.copyOf(result);
+    });
+  }
+
+  private interface RelationFilter {
+    boolean matches(B6DB.Relation relation);
+  }
+
+  private static final class CatalogItemExtensionDao extends BdbMapDaoSupport<ByteString, B6DB.CatalogItemExtension>
+      implements ProtobufKeyValueSerializer<B6DB.CatalogItemExtension> {
+    private final Database database;
+
+    CatalogItemExtensionDao(@Nonnull Database database) {
+      this.database = database;
     }
 
     @Nonnull
     @Override
-    protected DatabaseEntry toDatabaseEntry(@Nonnull B6DB.CatalogItemExtension value) throws IOException {
+    public Database getDatabase() {
+      return database;
+    }
+
+    @Nonnull
+    @Override
+    protected B6DB.CatalogItemExtension getValue(@Nonnull DatabaseEntry key, @Nonnull DatabaseEntry v) throws IOException {
+      try (final ByteArrayInputStream is = new ByteArrayInputStream(v.getData(), v.getOffset(), v.getSize())) {
+        final B6DB.CatalogItemExtension.Builder rb = B6DB.CatalogItemExtension.newBuilder()
+            .setItem(B6DB.CatalogItem.parseDelimitedFrom(is));
+        if (BOOK_TYPE.equals(rb.getItem().getType())) {
+          rb.setBook(B6DB.BookExtension.parseDelimitedFrom(is));
+        }
+        return rb.build();
+      }
+    }
+
+    @Nonnull
+    @Override
+    public DatabaseEntry getDatabaseEntryFromValue(@Nonnull B6DB.CatalogItemExtension value) throws IOException {
       int estimatedOutputSize = 10 + value.getItem().getSerializedSize();
       if (BOOK_TYPE.equals(value.getItem().getType())) {
         estimatedOutputSize += value.getBook().getSerializedSize();
@@ -77,7 +161,7 @@ public class DefaultCatalogDao implements CatalogDao {
       final byte[] buffer;
       try (final ByteArrayOutputStream os = new ByteArrayOutputStream(estimatedOutputSize)) {
         value.getItem().writeDelimitedTo(os);
-        if (value.getBook() != null) {
+        if (BOOK_TYPE.equals(value.getItem().getType())) {
           value.getBook().writeDelimitedTo(os);
         }
 

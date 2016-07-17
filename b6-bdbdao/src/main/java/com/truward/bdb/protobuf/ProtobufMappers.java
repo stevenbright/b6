@@ -1,8 +1,9 @@
-package com.truward.bdb.mapper;
+package com.truward.bdb.protobuf;
 
 import com.google.protobuf.MessageLite;
 import com.google.protobuf.Parser;
 import com.sleepycat.je.DatabaseEntry;
+import com.truward.bdb.mapper.BdbEntryMapper;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;

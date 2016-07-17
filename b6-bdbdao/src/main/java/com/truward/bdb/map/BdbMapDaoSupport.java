@@ -2,8 +2,15 @@ package com.truward.bdb.map;
 
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.ByteString;
-import com.sleepycat.je.*;
-import com.truward.bdb.mapper.BdbEntryMapper;
+import com.sleepycat.je.Cursor;
+import com.sleepycat.je.CursorConfig;
+import com.sleepycat.je.Database;
+import com.sleepycat.je.DatabaseEntry;
+import com.sleepycat.je.LockMode;
+import com.sleepycat.je.OperationStatus;
+import com.sleepycat.je.Transaction;
+import com.truward.bdb.exception.BdbDaoMappingException;
+import com.truward.bdb.exception.BdbDaoStatusException;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -17,35 +24,24 @@ import java.util.function.Supplier;
 /**
  * @author Alexander Shabanov
  */
-public abstract class BdbMapDaoSupport<T> implements BdbMapDao<T> {
-  private final Database database;
-  private final BdbEntryMapper<T> mapper;
-  private final LockMode lockMode;
-
-  public BdbMapDaoSupport(@Nonnull MapDaoConfig<T> config) {
-    this.database = config.getDatabase();
-    this.mapper = config.getMapper();
-    this.lockMode = config.getLockMode();
-  }
-
+public abstract class BdbMapDaoSupport<TKey, TValue> implements BdbMapDao<TKey, TValue>,
+    BdbKeyValueSerializer<TKey, TValue> {
+  
   @Nonnull
-  @Override
-  public Database getDatabase() {
-    return database;
-  }
-
+  public abstract Database getDatabase();
+  
   @Nullable
   @Override
-  public T get(@Nullable Transaction tx, @Nonnull ByteString key, @Nonnull Supplier<T> defaultValueSupplier) {
-    final DatabaseEntry keyEntry = new DatabaseEntry(key.toByteArray());
-    final DatabaseEntry valueEntry = new DatabaseEntry();
-    final OperationStatus status = database.get(tx, keyEntry, valueEntry, lockMode);
-    if (status == OperationStatus.SUCCESS) {
-      try {
-        return mapper.map(keyEntry, valueEntry);
-      } catch (IOException e) {
-        throw new IllegalStateException("Mapping error", e); // TODO: another exception
+  public TValue get(@Nullable Transaction tx, @Nonnull TKey key, @Nonnull Supplier<TValue> defaultValueSupplier) {
+    try {
+      final DatabaseEntry keyEntry = getDatabaseEntryFromKey(key);
+      final DatabaseEntry valueEntry = new DatabaseEntry();
+      final OperationStatus status = getDatabase().get(tx, keyEntry, valueEntry, getDefaultLockMode());
+      if (status == OperationStatus.SUCCESS) {
+          return getValue(keyEntry, valueEntry);
       }
+    } catch (IOException e) {
+      throw new BdbDaoMappingException(e);
     }
 
     return defaultValueSupplier.get();
@@ -53,14 +49,14 @@ public abstract class BdbMapDaoSupport<T> implements BdbMapDao<T> {
 
   @Nonnull
   @Override
-  public T get(@Nullable Transaction tx, @Nonnull ByteString key) {
-    final T result = get(tx, key, () -> {
+  public TValue get(@Nullable Transaction tx, @Nonnull TKey key) {
+    final TValue result = get(tx, key, () -> {
       throw new RuntimeException("There is no value corresponding to the given key"); // TODO: another exception
     });
 
     if (result == null) {
       // should not happen
-      throw new IllegalStateException("Contract violation: null returned but never expected");
+      throw new BdbDaoMappingException("null returned but never expected");
     }
 
     return result;
@@ -68,15 +64,15 @@ public abstract class BdbMapDaoSupport<T> implements BdbMapDao<T> {
 
   @Nonnull
   @Override
-  public List<T> getAsList(@Nullable Transaction tx, @Nonnull ByteString key) {
+  public List<TValue> getAsList(@Nullable Transaction tx, @Nonnull TKey key) {
     return query(tx, ((cursor, lockMode) -> {
-      final List<T> result = new ArrayList<>();
+      final List<TValue> result = new ArrayList<>();
 
       final DatabaseEntry outKey = new DatabaseEntry();
       final DatabaseEntry outValue = new DatabaseEntry();
-      OperationStatus status = cursor.getSearchKey(new DatabaseEntry(key.toByteArray()), outValue, lockMode);
+      OperationStatus status = cursor.getSearchKey(getDatabaseEntryFromKey(key), outValue, lockMode);
       for (; status == OperationStatus.SUCCESS; status = cursor.getNextDup(outKey, outValue, lockMode)) {
-        final T value = mapper.map(outKey, outValue);
+        final TValue value = getValue(outKey, outValue);
         result.add(value);
       }
 
@@ -86,16 +82,16 @@ public abstract class BdbMapDaoSupport<T> implements BdbMapDao<T> {
 
   @Nonnull
   @Override
-  public List<Map.Entry<ByteString, T>> getEntries(@Nullable Transaction tx, int offset, int limit) {
+  public List<Map.Entry<ByteString, TValue>> getEntries(@Nullable Transaction tx, int offset, int limit) {
     return query(tx, (cursor, lockMode) -> {
       final DatabaseEntry outKey = new DatabaseEntry();
       final DatabaseEntry outValue = new DatabaseEntry();
 
       if (OperationStatus.SUCCESS != cursor.getFirst(outKey, outValue, lockMode)) {
-        return ImmutableList.<Map.Entry<ByteString, T>>of();
+        return ImmutableList.<Map.Entry<ByteString, TValue>>of();
       }
 
-      final List<Map.Entry<ByteString, T>> result = new ArrayList<>();
+      final List<Map.Entry<ByteString, TValue>> result = new ArrayList<>();
       int pos = 0;
       do {
         if (pos < offset) {
@@ -107,7 +103,7 @@ public abstract class BdbMapDaoSupport<T> implements BdbMapDao<T> {
         }
 
         final ByteString key = ByteString.copyFrom(outKey.getData(), outKey.getOffset(), outKey.getSize());
-        final T value = mapper.map(outKey, outValue);
+        final TValue value = getValue(outKey, outValue);
         result.add(new AbstractMap.SimpleImmutableEntry<>(key, value));
         ++pos;
       } while (OperationStatus.SUCCESS == cursor.getNext(outKey, outValue, lockMode));
@@ -117,33 +113,38 @@ public abstract class BdbMapDaoSupport<T> implements BdbMapDao<T> {
 
   @Nonnull
   @Override
-  public <V> V query(@Nullable Transaction tx, @Nonnull BdbCursorMapper<V> cursorMapper) {
-    try (final Cursor cursor = database.openCursor(tx, getDefaultCursorConfig())) {
+  public <TMappedValue> TMappedValue query(@Nullable Transaction tx, @Nonnull BdbCursorMapper<TMappedValue> cursorMapper) {
+    try (final Cursor cursor = getDatabase().openCursor(tx, getDefaultCursorConfig())) {
       return cursorMapper.doWithCursor(cursor, getCursorLockMode());
     } catch (IOException e) {
-      throw new IllegalStateException("Mapping error", e); // TODO: another exception if value has not been properly mapped
+      throw new BdbDaoMappingException(e);
     }
   }
 
   @Override
-  public void put(@Nullable Transaction tx, @Nonnull ByteString key, @Nonnull T value) {
+  public void put(@Nullable Transaction tx, @Nonnull TKey key, @Nonnull TValue value) {
     try {
-      final DatabaseEntry keyEntry = new DatabaseEntry(key.toByteArray());
-      final DatabaseEntry valueEntry = toDatabaseEntry(value);
+      final DatabaseEntry keyEntry = getDatabaseEntryFromKey(key);
+      final DatabaseEntry valueEntry = getDatabaseEntryFromValue(value);
 
-      final OperationStatus status = database.put(tx, keyEntry, valueEntry);
+      final OperationStatus status = getDatabase().put(tx, keyEntry, valueEntry);
       if (status != OperationStatus.SUCCESS) {
-        throw new IllegalStateException("Unexpected put result=" + status);
+        throw new BdbDaoStatusException("put", status);
       }
     } catch (IOException e) {
-      throw new IllegalStateException("Mapping error", e); // TODO: another exception if value has not been properly mapped
+      throw new BdbDaoMappingException(e);
     }
   }
 
   @Override
-  public void delete(@Nullable Transaction tx, @Nonnull ByteString key) {
-    final DatabaseEntry keyEntry = new DatabaseEntry(key.toByteArray());
-    getDatabase().delete(tx, keyEntry);
+  public void delete(@Nullable Transaction tx, @Nonnull TKey key) {
+    final DatabaseEntry keyEntry;
+    try {
+      keyEntry = getDatabaseEntryFromKey(key);
+      getDatabase().delete(tx, keyEntry);
+    } catch (IOException e) {
+      throw new BdbDaoMappingException(e);
+    }
   }
 
   //
@@ -151,7 +152,8 @@ public abstract class BdbMapDaoSupport<T> implements BdbMapDao<T> {
   //
 
   @Nonnull
-  protected abstract DatabaseEntry toDatabaseEntry(@Nonnull T value) throws IOException;
+  protected abstract TValue getValue(@Nonnull DatabaseEntry key, @Nonnull DatabaseEntry value) throws IOException;
+
 
   @Nullable
   protected CursorConfig getDefaultCursorConfig() {
@@ -159,8 +161,13 @@ public abstract class BdbMapDaoSupport<T> implements BdbMapDao<T> {
   }
 
   @Nonnull
+  protected LockMode getDefaultLockMode() {
+    return LockMode.DEFAULT;
+  }
+
+  @Nonnull
   protected LockMode getCursorLockMode() {
-    final LockMode lockMode = this.lockMode;
+    final LockMode lockMode = getDefaultLockMode();
     return (lockMode == LockMode.READ_COMMITTED ? LockMode.DEFAULT : lockMode);
   }
 }

@@ -32,9 +32,19 @@ message BookExtension {
 //  repeated Named origins = 4;
 }
 
+//
+// Aggregate Types
+//
+
 message CatalogItemExtension {
   CatalogItem item = 1;
   BookExtension book = 2;
+}
+
+message Relation {
+  bytes fromId = 1;
+  bytes toId = 2;
+  string type = 3;
 }
 
 //
