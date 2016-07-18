@@ -1,9 +1,11 @@
 package b6.persistence;
 
+import b6.persistence.model.SortType;
 import b6.persistence.model.generated.B6DB;
 import com.google.protobuf.ByteString;
 import com.sleepycat.je.Transaction;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 
 /**
@@ -25,4 +27,13 @@ public interface CatalogDao {
   List<B6DB.Relation> getRelationsTo(Transaction tx, ByteString toId, int offset, int limit);
 
   B6DB.CatalogItemExtension getById(Transaction tx, ByteString id);
+
+  @Nonnull
+  List<B6DB.CatalogItemExtension> getCatalogItems(Transaction tx,
+                                                  @Nonnull ByteString relatedItemId,
+                                                  @Nonnull ByteString startItemId,
+                                                  @Nonnull String titleFilter,
+                                                  @Nonnull String typeFilter,
+                                                  @Nonnull SortType sortType,
+                                                  int limit);
 }

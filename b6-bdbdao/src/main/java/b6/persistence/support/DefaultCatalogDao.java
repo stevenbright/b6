@@ -1,8 +1,10 @@
 package b6.persistence.support;
 
 import b6.persistence.CatalogDao;
+import b6.persistence.model.SortType;
 import b6.persistence.model.generated.B6DB;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.ByteString;
 import com.sleepycat.je.*;
 import com.truward.bdb.BdbDatabaseConfigurer;
@@ -21,6 +23,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Alexander Shabanov
@@ -57,6 +62,72 @@ public final class DefaultCatalogDao implements CatalogDao {
   @Override
   public B6DB.CatalogItemExtension getById(Transaction tx, ByteString id) {
     return itemDao.get(null, id);
+  }
+
+  @Nonnull
+  @Override
+  public List<B6DB.CatalogItemExtension> getCatalogItems(Transaction tx,
+                                                         @Nonnull ByteString relatedItemId,
+                                                         @Nonnull ByteString startItemId,
+                                                         @Nonnull String titleFilter,
+                                                         @Nonnull String typeFilter,
+                                                         @Nonnull SortType sortType,
+                                                         int limit) {
+    final Set<ByteString> toRelations;
+    if (!relatedItemId.isEmpty()) {
+      toRelations = getRelationsFrom(tx, relatedItemId, 0, Integer.MAX_VALUE).stream().map(B6DB.Relation::getToId)
+          .collect(Collectors.toSet());
+    } else {
+      toRelations = ImmutableSet.of();
+    }
+
+    // brute force query
+    final List<B6DB.CatalogItemExtension> items = itemDao.query(tx, (cur, lm) -> {
+      final DatabaseEntry k = new DatabaseEntry();
+      final DatabaseEntry v = new DatabaseEntry();
+      final List<B6DB.CatalogItemExtension> result = new ArrayList<>();
+
+      for (OperationStatus s = cur.getFirst(k, v, lm); s == OperationStatus.SUCCESS; s = cur.getNext(k, v, lm)) {
+        final B6DB.CatalogItemExtension itemExtension = getCatalogItem(v);
+        final B6DB.CatalogItem item = itemExtension.getItem();
+        if (!titleFilter.isEmpty() && !item.getTitle().startsWith(titleFilter)) {
+          continue;
+        }
+
+        if (!typeFilter.isEmpty() && !item.getType().equals(typeFilter)) {
+          continue;
+        }
+
+        if (!relatedItemId.isEmpty() &&
+            !toRelations.contains(ByteString.copyFrom(k.getData(), k.getOffset(), k.getSize()))) {
+          continue;
+        }
+
+        result.add(itemExtension);
+      }
+
+      return result;
+    });
+
+    Stream<B6DB.CatalogItemExtension> itemStream = items.stream();
+    switch (sortType) {
+      case TITLE_ASCENDING:
+        itemStream = itemStream.sorted((l, r) -> l.getItem().getTitle().compareTo(r.getItem().getTitle()));
+        break;
+
+      case TITLE_DESCENDING:
+        itemStream = itemStream.sorted((l, r) -> r.getItem().getTitle().compareTo(l.getItem().getTitle()));
+        break;
+
+      case DEFAULT:
+        // do nothing
+        break;
+
+      default:
+        throw new UnsupportedOperationException("Unsupported sortType=" + sortType);
+    }
+
+    return itemStream.limit(limit).collect(Collectors.toList());
   }
 
   @Override
@@ -123,6 +194,17 @@ public final class DefaultCatalogDao implements CatalogDao {
     boolean matches(B6DB.Relation relation);
   }
 
+  private static B6DB.CatalogItemExtension getCatalogItem(@Nonnull DatabaseEntry v) throws IOException {
+    try (final ByteArrayInputStream is = new ByteArrayInputStream(v.getData(), v.getOffset(), v.getSize())) {
+      final B6DB.CatalogItemExtension.Builder rb = B6DB.CatalogItemExtension.newBuilder()
+          .setItem(B6DB.CatalogItem.parseDelimitedFrom(is));
+      if (BOOK_TYPE.equals(rb.getItem().getType())) {
+        rb.setBook(B6DB.BookExtension.parseDelimitedFrom(is));
+      }
+      return rb.build();
+    }
+  }
+
   private static final class CatalogItemExtensionDao extends BdbMapDaoSupport<ByteString, B6DB.CatalogItemExtension>
       implements ProtobufKeyValueSerializer<B6DB.CatalogItemExtension> {
     private final Database database;
@@ -140,14 +222,7 @@ public final class DefaultCatalogDao implements CatalogDao {
     @Nonnull
     @Override
     protected B6DB.CatalogItemExtension getValue(@Nonnull DatabaseEntry key, @Nonnull DatabaseEntry v) throws IOException {
-      try (final ByteArrayInputStream is = new ByteArrayInputStream(v.getData(), v.getOffset(), v.getSize())) {
-        final B6DB.CatalogItemExtension.Builder rb = B6DB.CatalogItemExtension.newBuilder()
-            .setItem(B6DB.CatalogItem.parseDelimitedFrom(is));
-        if (BOOK_TYPE.equals(rb.getItem().getType())) {
-          rb.setBook(B6DB.BookExtension.parseDelimitedFrom(is));
-        }
-        return rb.build();
-      }
+      return getCatalogItem(v);
     }
 
     @Nonnull
