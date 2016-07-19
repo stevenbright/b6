@@ -60,13 +60,14 @@ public final class DefaultCatalogDao implements CatalogDao {
   }
 
   @Override
-  public B6DB.CatalogItemExtension getById(Transaction tx, ByteString id) {
-    return itemDao.get(null, id);
+  public B6DB.CatalogItemResult getById(Transaction tx, ByteString id) {
+    final B6DB.CatalogItemExtension item = itemDao.get(null, id);
+    return getCatalogItemResult(id, item);
   }
 
   @Nonnull
   @Override
-  public List<B6DB.CatalogItemExtension> getCatalogItems(Transaction tx,
+  public List<B6DB.CatalogItemResult> getCatalogItems(Transaction tx,
                                                          @Nonnull ByteString relatedItemId,
                                                          @Nonnull ByteString startItemId,
                                                          @Nonnull String titleFilter,
@@ -82,10 +83,10 @@ public final class DefaultCatalogDao implements CatalogDao {
     }
 
     // brute force query
-    final List<B6DB.CatalogItemExtension> items = itemDao.query(tx, (cur, lm) -> {
+    final List<B6DB.CatalogItemResult> items = itemDao.query(tx, (cur, lm) -> {
       final DatabaseEntry k = new DatabaseEntry();
       final DatabaseEntry v = new DatabaseEntry();
-      final List<B6DB.CatalogItemExtension> result = new ArrayList<>();
+      final List<B6DB.CatalogItemResult> result = new ArrayList<>();
 
       for (OperationStatus s = cur.getFirst(k, v, lm); s == OperationStatus.SUCCESS; s = cur.getNext(k, v, lm)) {
         final B6DB.CatalogItemExtension itemExtension = getCatalogItem(v);
@@ -103,13 +104,13 @@ public final class DefaultCatalogDao implements CatalogDao {
           continue;
         }
 
-        result.add(itemExtension);
+        result.add(getCatalogItemResult(ByteString.copyFrom(k.getData(), k.getOffset(), k.getSize()), itemExtension));
       }
 
       return result;
     });
 
-    Stream<B6DB.CatalogItemExtension> itemStream = items.stream();
+    Stream<B6DB.CatalogItemResult> itemStream = items.stream();
     switch (sortType) {
       case TITLE_ASCENDING:
         itemStream = itemStream.sorted((l, r) -> l.getItem().getTitle().compareTo(r.getItem().getTitle()));
@@ -167,6 +168,16 @@ public final class DefaultCatalogDao implements CatalogDao {
   //
   // Private
   //
+
+  private static B6DB.CatalogItemResult getCatalogItemResult(ByteString id, B6DB.CatalogItemExtension item) {
+    final B6DB.CatalogItemResult.Builder builder = B6DB.CatalogItemResult.newBuilder()
+        .setId(id).setItem(item.getItem());
+    if (item.hasBook()) {
+      builder.setBook(item.getBook());
+    }
+
+    return builder.build();
+  }
 
   private List<B6DB.Relation> queryRelations(Transaction tx, int offset, int limit, RelationFilter filter) {
     return relationDao.query(tx, (cur, lm) -> {

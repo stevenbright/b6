@@ -26,10 +26,10 @@ public interface CatalogDao {
 
   List<B6DB.Relation> getRelationsTo(Transaction tx, ByteString toId, int offset, int limit);
 
-  B6DB.CatalogItemExtension getById(Transaction tx, ByteString id);
+  B6DB.CatalogItemResult getById(Transaction tx, ByteString id);
 
   @Nonnull
-  List<B6DB.CatalogItemExtension> getCatalogItems(Transaction tx,
+  List<B6DB.CatalogItemResult> getCatalogItems(Transaction tx,
                                                   @Nonnull ByteString relatedItemId,
                                                   @Nonnull ByteString startItemId,
                                                   @Nonnull String titleFilter,

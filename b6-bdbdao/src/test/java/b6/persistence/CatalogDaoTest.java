@@ -13,6 +13,7 @@ import org.junit.Test;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
 
@@ -45,8 +46,8 @@ public final class CatalogDaoTest extends BdbEnvironmentTestSupport {
     final ByteString id = catalogDao.insert(null, item);
 
     // Then:
-    final B6DB.CatalogItemExtension actual = catalogDao.getById(null, id);
-    assertEquals(item, actual);
+    final B6DB.CatalogItemResult actual = catalogDao.getById(null, id);
+    assertSame(item, actual, id);
   }
 
   @Test
@@ -64,12 +65,12 @@ public final class CatalogDaoTest extends BdbEnvironmentTestSupport {
 
     // When:
     final ByteString id = catalogDao.insert(null, item1);
-    assertEquals(item1, catalogDao.getById(null, id));
+    assertSame(item1, catalogDao.getById(null, id), id);
     catalogDao.update(null, id, item2);
 
     // Then:
-    final B6DB.CatalogItemExtension actual = catalogDao.getById(null, id);
-    assertEquals(item2, actual);
+    final B6DB.CatalogItemResult actual = catalogDao.getById(null, id);
+    assertSame(item2, actual, id);
   }
 
   @Test
@@ -87,19 +88,10 @@ public final class CatalogDaoTest extends BdbEnvironmentTestSupport {
     final ByteString idBook2 = catalogDao.insert(null, itemBuilder("Book2", CatalogDao.BOOK_TYPE).build());
 
     // When:
-    final B6DB.Relation relBook1Genre1 = B6DB.Relation.newBuilder().setType(CatalogDao.GENRE_TYPE)
-        .setFromId(idBook1).setToId(idGenre1).build();
-    final B6DB.Relation relBook1Genre2 = B6DB.Relation.newBuilder().setType(CatalogDao.GENRE_TYPE)
-        .setFromId(idBook1).setToId(idGenre2).build();
-    final B6DB.Relation relBook1Lang = B6DB.Relation.newBuilder().setType(CatalogDao.GENRE_TYPE)
-        .setFromId(idBook1).setToId(idLang).build();
-    catalogDao.insertRelation(null, relBook1Genre1);
-    catalogDao.insertRelation(null, relBook1Genre2);
-    catalogDao.insertRelation(null, relBook1Lang);
-
-    final B6DB.Relation relBook2Lang = B6DB.Relation.newBuilder().setType(CatalogDao.GENRE_TYPE)
-        .setFromId(idBook2).setToId(idLang).build();
-    catalogDao.insertRelation(null, relBook2Lang);
+    final B6DB.Relation relBook1Genre1 = insertRelation(idBook1, idGenre1, CatalogDao.GENRE_TYPE);
+    final B6DB.Relation relBook1Genre2 = insertRelation(idBook1, idGenre2, CatalogDao.GENRE_TYPE);
+    final B6DB.Relation relBook1Lang = insertRelation(idBook1, idLang, CatalogDao.GENRE_TYPE);
+    final B6DB.Relation relBook2Lang = insertRelation(idBook2, idLang, CatalogDao.GENRE_TYPE);
 
     // Then:
     assertEquals(ImmutableList.of(relBook2Lang), catalogDao.getRelationsFrom(null, idBook2, 0, 2));
@@ -146,23 +138,64 @@ public final class CatalogDaoTest extends BdbEnvironmentTestSupport {
 
   @Test
   public void shouldGetItems() {
+    // End test
+    assertTrue(catalogDao.getCatalogItems(null, ByteString.EMPTY, ByteString.EMPTY, "", "",
+        SortType.DEFAULT, 5).isEmpty());
+
     // Given:
     final ByteString idLang = catalogDao.insert(null, itemLang);
     final ByteString idGenre1 = catalogDao.insert(null, itemBuilder("fantasy", CatalogDao.GENRE_TYPE).build());
     final ByteString idGenre2 = catalogDao.insert(null, itemBuilder("novel", CatalogDao.GENRE_TYPE).build());
-    final ByteString idBook1 = catalogDao.insert(null, itemBuilder("Book 2", CatalogDao.BOOK_TYPE).build());
+    final ByteString idBook1 = catalogDao.insert(null, itemBuilder("Book 4", CatalogDao.BOOK_TYPE).build());
     final ByteString idBook2 = catalogDao.insert(null, itemBuilder("A Book 1", CatalogDao.BOOK_TYPE).build());
+    final ByteString idBook3 = catalogDao.insert(null, itemBuilder("A Book 2", CatalogDao.BOOK_TYPE).build());
+    final ByteString idBook4 = catalogDao.insert(null, itemBuilder("A Book 5", CatalogDao.BOOK_TYPE).build());
+    final ByteString idBook5 = catalogDao.insert(null, itemBuilder("Book 3", CatalogDao.BOOK_TYPE).build());
 
     // Test:
-    final List<B6DB.CatalogItemExtension> items = catalogDao.getCatalogItems(null, ByteString.EMPTY, ByteString.EMPTY,
-        "", "", SortType.DEFAULT, 5);
+    final List<B6DB.CatalogItemResult> items = catalogDao.getCatalogItems(null, ByteString.EMPTY, ByteString.EMPTY,
+        "", "", SortType.DEFAULT, 9);
 
-    assertEquals(5, items.size());
+    assertEquals(8, items.size());
+
+    insertRelation(idBook1, idGenre1, CatalogDao.GENRE_TYPE);
+    insertRelation(idBook2, idGenre1, CatalogDao.GENRE_TYPE);
+    insertRelation(idBook3, idGenre1, CatalogDao.GENRE_TYPE);
+    insertRelation(idBook2, idGenre2, CatalogDao.GENRE_TYPE);
+    insertRelation(idBook4, idGenre2, CatalogDao.GENRE_TYPE);
+    insertRelation(idBook1, idLang, CatalogDao.GENRE_TYPE);
+    insertRelation(idBook2, idLang, CatalogDao.GENRE_TYPE);
+
+    final List<B6DB.CatalogItemResult> items1 = catalogDao.getCatalogItems(null, ByteString.EMPTY, ByteString.EMPTY,
+        "", CatalogDao.BOOK_TYPE, SortType.TITLE_ASCENDING, 5);
+    assertEquals(ImmutableList.of(idBook2, idBook3, idBook4, idBook5, idBook1), items1.stream()
+        .map(B6DB.CatalogItemResult::getId).collect(Collectors.toList()));
   }
 
   //
   // Private
   //
+
+  private static void assertSame(B6DB.CatalogItemExtension item, B6DB.CatalogItemResult result, ByteString id) {
+    B6DB.CatalogItemExtension.Builder itemBuilder = B6DB.CatalogItemExtension.newBuilder().setItem(result.getItem());
+    if (result.hasBook()) {
+      itemBuilder.setBook(result.getBook());
+    }
+    assertEquals(item, itemBuilder.build());
+    assertEquals(id, result.getId());
+  }
+
+  private B6DB.Relation insertRelation(ByteString fromId, ByteString toId, String type) {
+    final B6DB.Relation relation = B6DB.Relation.newBuilder()
+        .setType(type)
+        .setFromId(fromId)
+        .setToId(toId)
+        .build();
+
+    catalogDao.insertRelation(null, relation);
+
+    return relation;
+  }
 
   private static B6DB.CatalogItemExtension.Builder itemBuilder(String title, String type) {
     return B6DB.CatalogItemExtension.newBuilder()
