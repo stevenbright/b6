@@ -4,12 +4,35 @@
        xsi:schemaLocation="
         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-  <bean id="b6Website.dao.jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
-    <property name="dataSource" ref="b6Website.dao.dataSource"/>
+  <bean id="b6Website.dao.envConfig" class="com.sleepycat.je.EnvironmentConfig">
+    <property name="allowCreate" value="true"/>
+    <property name="transactional" value="true"/>
   </bean>
 
-  <bean id="b6Website.dao.txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
-    <property name="dataSource" ref="b6Website.dao.dataSource"/>
-    <qualifier value="b6Website.txManager"/>
+  <bean id="b6Website.dao.environmentId" class="java.util.UUID" factory-method="randomUUID"/>
+
+  <bean id="b6Website.dao.environmentHome" class="java.io.File">
+    <constructor-arg>
+      <bean class="java.lang.String" factory-method="join">
+        <constructor-arg value=""/> <!-- Delimeter -->
+        <constructor-arg>
+          <list>
+            <value>/tmp/b6db-</value>
+            <bean factory-bean="b6Website.dao.environmentId" factory-method="toString"/>
+          </list>
+        </constructor-arg>
+      </bean>
+    </constructor-arg>
   </bean>
+
+  <bean id="b6Website.dao.environmentHome.mkdir" factory-bean="b6Website.dao.environmentHome" factory-method="mkdir"/>
+
+  <bean id="b6Website.dao.environment" class="com.sleepycat.je.Environment" depends-on="b6Website.dao.environmentHome.mkdir" destroy-method="close">
+    <constructor-arg ref="b6Website.dao.environmentHome"/>
+    <constructor-arg ref="b6Website.dao.envConfig"/>
+  </bean>
+
+  <bean id="b6Website.dao.databaseConfigurer" class="com.truward.bdb.StandardBdbDatabaseConfigurer"/>
+
+  <bean id="b6Website.dao.catalogDao" class="b6.persistence.support.DefaultCatalogDao" autowire="constructor" destroy-method="close"/>
 </beans>

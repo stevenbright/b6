@@ -20,9 +20,11 @@ import com.truward.bdb.protobuf.key.KeyUtil;
 import javax.annotation.Nonnull;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -30,21 +32,34 @@ import java.util.stream.Stream;
 /**
  * @author Alexander Shabanov
  */
-public final class DefaultCatalogDao implements CatalogDao {
+public final class DefaultCatalogDao implements CatalogDao, Closeable {
 
   public static final String CATALOG_ITEM_DATABASE_NAME = "CatalogItem";
   public static final String RELATION_DATABASE_NAME = "Relation";
 
-  private final CatalogItemExtensionDao itemDao;
-  private final BdbMapDao<ByteString, B6DB.Relation> relationDao;
   private static final BdbEntryMapper<B6DB.Relation> RELATION_MAPPER = ProtobufMappers.of(B6DB.Relation.getDefaultInstance());
 
-  public DefaultCatalogDao(@Nonnull Environment environment, @Nonnull BdbDatabaseConfigurer dbConfigurer) {
-    itemDao = new CatalogItemExtensionDao(environment.openDatabase(null, CATALOG_ITEM_DATABASE_NAME, dbConfigurer.createDefaultConfig()
-        .setSortedDuplicates(false)));
+  private final CatalogItemExtensionDao itemDao;
+  private final BdbMapDao<ByteString, B6DB.Relation> relationDao;
+  private final Database catalogDb;
+  private final Database relDb;
 
-    relationDao = new ProtobufBdbMapDaoSupport<>(new MapDaoConfig<>(environment.openDatabase(null,
-        RELATION_DATABASE_NAME, dbConfigurer.createDefaultConfig().setSortedDuplicates(false)), RELATION_MAPPER));
+  public DefaultCatalogDao(@Nonnull Environment environment, @Nonnull BdbDatabaseConfigurer dbConfigurer) {
+    Objects.requireNonNull(environment, "environment");
+
+    this.catalogDb = environment.openDatabase(null, CATALOG_ITEM_DATABASE_NAME, dbConfigurer.createDefaultConfig()
+        .setSortedDuplicates(false));
+    this.itemDao = new CatalogItemExtensionDao(this.catalogDb);
+
+    this.relDb = environment.openDatabase(null, RELATION_DATABASE_NAME,
+        dbConfigurer.createDefaultConfig().setSortedDuplicates(false));
+    relationDao = new ProtobufBdbMapDaoSupport<>(new MapDaoConfig<>(relDb, RELATION_MAPPER));
+  }
+
+  @Override
+  public void close() throws IOException {
+    catalogDb.close();
+    relDb.close();
   }
 
   @Override

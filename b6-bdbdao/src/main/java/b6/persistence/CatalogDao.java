@@ -12,9 +12,11 @@ import java.util.List;
  * @author Alexander Shabanov
  */
 public interface CatalogDao {
-  String BOOK_TYPE = "book";
-  String LANGUAGE_TYPE = "language";
-  String GENRE_TYPE = "genre";
+  String BOOK_TYPE          = "book";
+  String LANGUAGE_TYPE      = "language";
+  String GENRE_TYPE         = "genre";
+  String PERSON_TYPE        = "person";
+  String ORIGIN_TYPE        = "origin";
 
   ByteString insert(Transaction tx, B6DB.CatalogItemExtension item);
 
