@@ -10,6 +10,7 @@ import com.google.protobuf.ByteString;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -172,9 +173,96 @@ public final class CatalogDaoTest extends BdbEnvironmentTestSupport {
         .map(B6DB.CatalogItemResult::getId).collect(Collectors.toList()));
   }
 
+  @Test
+  public void shouldAccountForCursor() {
+    // Given:
+    final ByteString idBook1 = catalogDao.insert(null, itemBuilder("DDD", CatalogDao.BOOK_TYPE).build());
+    final ByteString idBook2 = catalogDao.insert(null, itemBuilder("CCC", CatalogDao.BOOK_TYPE).build());
+    final ByteString idBook3 = catalogDao.insert(null, itemBuilder("BBB", CatalogDao.GENRE_TYPE).build());
+    final ByteString idBook4 = catalogDao.insert(null, itemBuilder("AAA", CatalogDao.BOOK_TYPE).build());
+    final ByteString idBook5 = catalogDao.insert(null, itemBuilder("BBB", CatalogDao.BOOK_TYPE).build());
+
+    // When:
+    final List<B6DB.CatalogItemResult> r1 = catalogDao.getCatalogItems(null, ByteString.EMPTY, ByteString.EMPTY,
+        "", "", SortType.DEFAULT, 10);
+
+    // Then:
+    assertEquals(ImmutableSet.of(idBook1, idBook2, idBook3, idBook4, idBook5), r1.stream()
+        .map(B6DB.CatalogItemResult::getId)
+        .collect(Collectors.toSet()));
+
+    // When:
+    final List<B6DB.CatalogItemResult> r2 = catalogDao.getCatalogItems(null, ByteString.EMPTY, ByteString.EMPTY,
+        "", CatalogDao.BOOK_TYPE, SortType.TITLE_ASCENDING, 10);
+
+    // Then:
+    assertEquals(ImmutableList.of(idBook4, idBook5, idBook2, idBook1), r2.stream()
+        .map(B6DB.CatalogItemResult::getId)
+        .collect(Collectors.toList()));
+
+    // When:
+    final List<B6DB.CatalogItemResult> r3 = catalogDao.getCatalogItems(null, ByteString.EMPTY, ByteString.EMPTY,
+        "", CatalogDao.BOOK_TYPE, SortType.TITLE_DESCENDING, 10);
+
+    // Then:
+    assertEquals(ImmutableList.of(idBook1, idBook2, idBook5, idBook4), r3.stream()
+        .map(B6DB.CatalogItemResult::getId)
+        .collect(Collectors.toList()));
+
+    // When:
+    final List<B6DB.CatalogItemResult> r4 = catalogDao.getCatalogItems(null, ByteString.EMPTY, idBook5,
+        "", CatalogDao.BOOK_TYPE, SortType.TITLE_ASCENDING, 10);
+
+    // Then:
+    assertEquals(ImmutableList.of(idBook2, idBook1), r4.stream()
+        .map(B6DB.CatalogItemResult::getId)
+        .collect(Collectors.toList()));
+
+    // When:
+    final List<B6DB.CatalogItemResult> r5 = catalogDao.getCatalogItems(null, ByteString.EMPTY, idBook2,
+        "", CatalogDao.BOOK_TYPE, SortType.TITLE_DESCENDING, 10);
+
+    // Then:
+    assertEquals(ImmutableList.of(idBook5, idBook4), r5.stream()
+        .map(B6DB.CatalogItemResult::getId)
+        .collect(Collectors.toList()));
+  }
+
+  @Test
+  public void shouldAccountForCursorInDuplicateItems() {
+    // Given:
+    final ByteString id1 = catalogDao.insert(null, itemBuilder("AAA", CatalogDao.ORIGIN_TYPE).build());
+    final ByteString id2 = catalogDao.insert(null, itemBuilder("AAA", CatalogDao.LANGUAGE_TYPE).build());
+    final ByteString id3 = catalogDao.insert(null, itemBuilder("AAA", CatalogDao.GENRE_TYPE).build());
+    final ByteString id4 = catalogDao.insert(null, itemBuilder("AAA", CatalogDao.BOOK_TYPE).build());
+    final ByteString id5 = catalogDao.insert(null, itemBuilder("AAA", CatalogDao.PERSON_TYPE).build());
+
+    final List<ByteString> ids = ImmutableList.of(id1, id2, id3, id4, id5);
+    assertCanRetrieveInChunks(ids, SortType.DEFAULT);
+    assertCanRetrieveInChunks(ids, SortType.TITLE_DESCENDING);
+    assertCanRetrieveInChunks(ids, SortType.TITLE_ASCENDING);
+  }
+
   //
   // Private
   //
+
+  private void assertCanRetrieveInChunks(List<ByteString> expected, SortType sortType) {
+    final List<B6DB.CatalogItemResult> actual = new ArrayList<>();
+    for (ByteString cursor = ByteString.EMPTY;;) {
+      final List<B6DB.CatalogItemResult> res = catalogDao.getCatalogItems(null, ByteString.EMPTY, cursor, "", "",
+          sortType, 1);
+      if (res.isEmpty()) {
+        break;
+      }
+
+      cursor = res.get(0).getId();
+      actual.addAll(res);
+    }
+
+    assertEquals(ImmutableSet.copyOf(expected), actual.stream().map(B6DB.CatalogItemResult::getId)
+        .collect(Collectors.toSet()));
+  }
 
   private static void assertSame(B6DB.CatalogItemExtension item, B6DB.CatalogItemResult result, ByteString id) {
     B6DB.CatalogItemExtension.Builder itemBuilder = B6DB.CatalogItemExtension.newBuilder().setItem(result.getItem());

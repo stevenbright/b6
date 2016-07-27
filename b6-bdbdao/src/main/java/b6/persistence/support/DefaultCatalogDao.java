@@ -22,10 +22,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -125,18 +122,56 @@ public final class DefaultCatalogDao implements CatalogDao, Closeable {
       return result;
     });
 
+    Optional<B6DB.CatalogItemResult> startItem = startItemId.isEmpty() ? Optional.empty() :
+        Optional.of(getById(tx, startItemId));
     Stream<B6DB.CatalogItemResult> itemStream = items.stream();
     switch (sortType) {
       case TITLE_ASCENDING:
-        itemStream = itemStream.sorted((l, r) -> l.getItem().getTitle().compareTo(r.getItem().getTitle()));
+        itemStream = itemStream.sorted((l, r) -> {
+          int result = l.getItem().getTitle().compareTo(r.getItem().getTitle());
+          if (result == 0) {
+            // compare by IDs to introduce unique ordering
+            result = l.getId().asReadOnlyByteBuffer().compareTo(r.getId().asReadOnlyByteBuffer());
+          }
+          return result;
+        });
+
+        if (startItem.isPresent()) {
+          // skip first items
+          itemStream = itemStream.filter(i -> {
+            final int titleComparison = i.getItem().getTitle().compareTo(startItem.get().getItem().getTitle());
+            return !((titleComparison < 0) || ((titleComparison == 0) && (i.getId().asReadOnlyByteBuffer()
+                .compareTo(startItem.get().getId().asReadOnlyByteBuffer()) <= 0)));
+          });
+        }
         break;
 
       case TITLE_DESCENDING:
-        itemStream = itemStream.sorted((l, r) -> r.getItem().getTitle().compareTo(l.getItem().getTitle()));
+        itemStream = itemStream.sorted((l, r) -> {
+          int result = r.getItem().getTitle().compareTo(l.getItem().getTitle());
+          if (result == 0) {
+            // compare by IDs to introduce unique ordering
+            result = r.getId().asReadOnlyByteBuffer().compareTo(l.getId().asReadOnlyByteBuffer());
+          }
+          return result;
+        });
+
+        if (startItem.isPresent()) {
+          // skip first items
+          itemStream = itemStream.filter(i -> {
+            final int titleComparison = i.getItem().getTitle().compareTo(startItem.get().getItem().getTitle());
+            return !((titleComparison > 0) || ((titleComparison == 0) && (i.getId().asReadOnlyByteBuffer()
+                .compareTo(startItem.get().getId().asReadOnlyByteBuffer()) >= 0)));
+          });
+        }
         break;
 
       case DEFAULT:
-        // do nothing
+        // skip first items
+        if (startItem.isPresent()) {
+          itemStream = itemStream.filter(i -> i.getId()
+              .asReadOnlyByteBuffer().compareTo(startItem.get().getId().asReadOnlyByteBuffer()) > 0);
+        }
         break;
 
       default:
