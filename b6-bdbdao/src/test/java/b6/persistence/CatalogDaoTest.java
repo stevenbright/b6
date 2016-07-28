@@ -3,7 +3,7 @@ package b6.persistence;
 import b6.persistence.model.SortType;
 import b6.persistence.model.generated.B6DB;
 import b6.persistence.support.DefaultCatalogDao;
-import b6.persistence.testSupport.BdbEnvironmentTestSupport;
+import com.truward.bdb.testSupport.BdbEnvironmentTestSupport;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.ByteString;

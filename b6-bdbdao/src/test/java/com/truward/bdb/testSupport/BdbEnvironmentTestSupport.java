@@ -1,4 +1,4 @@
-package b6.persistence.testSupport;
+package com.truward.bdb.testSupport;
 
 import b6.persistence.util.DirectoryCleanupTask;
 import com.sleepycat.je.CacheMode;

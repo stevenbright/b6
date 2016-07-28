@@ -6,7 +6,11 @@ import b6.persistence.model.generated.B6DB;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.ByteString;
-import com.sleepycat.je.*;
+import com.sleepycat.je.Database;
+import com.sleepycat.je.DatabaseEntry;
+import com.sleepycat.je.Environment;
+import com.sleepycat.je.OperationStatus;
+import com.sleepycat.je.Transaction;
 import com.truward.bdb.BdbDatabaseConfigurer;
 import com.truward.bdb.map.BdbMapDao;
 import com.truward.bdb.map.BdbMapDaoSupport;
@@ -22,7 +26,11 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -131,7 +139,7 @@ public final class DefaultCatalogDao implements CatalogDao, Closeable {
           int result = l.getItem().getTitle().compareTo(r.getItem().getTitle());
           if (result == 0) {
             // compare by IDs to introduce unique ordering
-            result = l.getId().asReadOnlyByteBuffer().compareTo(r.getId().asReadOnlyByteBuffer());
+            result = KeyUtil.compare(l.getId(), r.getId());
           }
           return result;
         });
@@ -140,8 +148,8 @@ public final class DefaultCatalogDao implements CatalogDao, Closeable {
           // skip first items
           itemStream = itemStream.filter(i -> {
             final int titleComparison = i.getItem().getTitle().compareTo(startItem.get().getItem().getTitle());
-            return !((titleComparison < 0) || ((titleComparison == 0) && (i.getId().asReadOnlyByteBuffer()
-                .compareTo(startItem.get().getId().asReadOnlyByteBuffer()) <= 0)));
+            return !((titleComparison < 0) || ((titleComparison == 0) &&
+                (KeyUtil.compare(i.getId(), startItem.get().getId()) <= 0)));
           });
         }
         break;
@@ -151,7 +159,7 @@ public final class DefaultCatalogDao implements CatalogDao, Closeable {
           int result = r.getItem().getTitle().compareTo(l.getItem().getTitle());
           if (result == 0) {
             // compare by IDs to introduce unique ordering
-            result = r.getId().asReadOnlyByteBuffer().compareTo(l.getId().asReadOnlyByteBuffer());
+            result = KeyUtil.compare(r.getId(), l.getId());
           }
           return result;
         });
@@ -160,8 +168,8 @@ public final class DefaultCatalogDao implements CatalogDao, Closeable {
           // skip first items
           itemStream = itemStream.filter(i -> {
             final int titleComparison = i.getItem().getTitle().compareTo(startItem.get().getItem().getTitle());
-            return !((titleComparison > 0) || ((titleComparison == 0) && (i.getId().asReadOnlyByteBuffer()
-                .compareTo(startItem.get().getId().asReadOnlyByteBuffer()) >= 0)));
+            return !((titleComparison > 0) || ((titleComparison == 0) &&
+                (KeyUtil.compare(i.getId(), startItem.get().getId()) >= 0)));
           });
         }
         break;
@@ -169,8 +177,7 @@ public final class DefaultCatalogDao implements CatalogDao, Closeable {
       case DEFAULT:
         // skip first items
         if (startItem.isPresent()) {
-          itemStream = itemStream.filter(i -> i.getId()
-              .asReadOnlyByteBuffer().compareTo(startItem.get().getId().asReadOnlyByteBuffer()) > 0);
+          itemStream = itemStream.filter(i -> KeyUtil.compare(i.getId(), startItem.get().getId()) > 0);
         }
         break;
 
@@ -220,13 +227,12 @@ public final class DefaultCatalogDao implements CatalogDao, Closeable {
   //
 
   private static B6DB.CatalogItemResult getCatalogItemResult(ByteString id, B6DB.CatalogItemExtension item) {
-    final B6DB.CatalogItemResult.Builder builder = B6DB.CatalogItemResult.newBuilder()
-        .setId(id).setItem(item.getItem());
+    final B6DB.CatalogItemResult.Builder b = B6DB.CatalogItemResult.newBuilder().setId(id).setItem(item.getItem());
     if (item.hasBook()) {
-      builder.setBook(item.getBook());
+      b.setBook(item.getBook());
     }
 
-    return builder.build();
+    return b.build();
   }
 
   private List<B6DB.Relation> queryRelations(Transaction tx, int offset, int limit, RelationFilter filter) {

@@ -44,6 +44,10 @@ public final class KeyUtil {
     return randomKey(DEFAULT_KEY_SIZE);
   }
 
+  public static int compare(@Nonnull ByteString lhs, @Nonnull ByteString rhs) {
+    return lhs.asReadOnlyByteBuffer().compareTo(rhs.asReadOnlyByteBuffer());
+  }
+
   @Nonnull
   public static String toHexString(@Nullable ByteString bytes) {
     if (bytes == null) {
