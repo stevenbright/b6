@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package b6.persistence;
+
+option java_package = "b6.persistence.model.generated";
+option java_outer_classname = "B6db";
+
+//
+// Base Types
+//
+
+// catalog item - can be book, language, tag, author, genre or origin
+// should be saved using delimited serializer
+message Item {
+  string title = 1;
+  string type = 2;
+} // book follows (read delimited)
+
+message DownloadItem {
+  string descriptorText = 1;
+  int32 fileSize = 2;
+  string originId = 3;
+  string downloadId = 4;
+}
+
+message BookExtension {
+  repeated DownloadItem downloadItems = 1;
+}
+
+//
+// Aggregate Types
+//
+
+message Extensions {
+  BookExtension book = 1;
+}
+
+message CatalogItem {
+  string id = 1;
+  CatalogItem item = 2;
+  Extensions extensions = 3;
+  repeated Named relations = 4;
+}
+
+message Relation {
+  string fromId = 1;
+  string toId = 2;
+  string type = 3;
+}

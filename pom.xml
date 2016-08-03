@@ -19,7 +19,7 @@
   </description>
 
   <modules>
-    <module>b6-bdbdao</module>
+    <module>b6-dao</module>
     <module>b6-static-content</module>
     <module>b6-website</module>
   </modules>
