@@ -10,16 +10,15 @@ option java_outer_classname = "B6db";
 //
 
 // catalog item - can be book, language, tag, author, genre or origin
-// should be saved using delimited serializer
 message Item {
   string title = 1;
   string type = 2;
-} // book follows (read delimited)
+}
 
 message DownloadItem {
   string descriptorText = 1;
   int32 fileSize = 2;
-  string originId = 3;
+  string originName = 3;
   string downloadId = 4;
 }
 
@@ -37,10 +36,12 @@ message Extensions {
 
 message CatalogItem {
   string id = 1;
-  CatalogItem item = 2;
+  Item item = 2;
   Extensions extensions = 3;
-  repeated Named relations = 4;
 }
+
+// TODO: separate relations
+//repeated Named relations = 4;
 
 message Relation {
   string fromId = 1;

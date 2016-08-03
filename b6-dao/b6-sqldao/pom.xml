@@ -13,17 +13,7 @@
   <name>B6 SQL DAO</name>
 
   <dependencies>
-
-    <!-- UTC time -->
-    <dependency>
-      <groupId>com.truward.time</groupId>
-      <artifactId>utc-time</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.truward.time</groupId>
-      <artifactId>utc-time-sql</artifactId>
-    </dependency>
-
+    <!-- Context -->
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-context</artifactId>
@@ -33,6 +23,12 @@
     <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
+    </dependency>
+
+    <!-- Alternative - postgres -->
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
     </dependency>
 
     <dependency>
