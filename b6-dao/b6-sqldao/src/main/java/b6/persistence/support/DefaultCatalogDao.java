@@ -83,6 +83,35 @@ public final class DefaultCatalogDao implements CatalogDao {
     throw new UnsupportedOperationException();
   }
 
+  @Nonnull
+  @Override
+  public List<B6db.Relation> getRelations(@Nonnull String toIdStr) {
+    final long toId = IdUtil.toLong(toIdStr);
+    return db.query("SELECT r.lhs, r.rhs, e.name AS type_name FROM item_relation AS r\n" +
+            "INNER JOIN entity_type AS e ON e.id=r.type_id\n" +
+            "WHERE rhs=?",
+        (rs, i) -> getRelation(rs), toId);
+  }
+
+  @Override
+  public void removeRelations(@Nonnull String idStr) {
+    final long id = IdUtil.toLong(idStr);
+    db.update("DELETE item_relation WHERE lhs=? OR rhs=?", id, id);
+  }
+
+  @Override
+  public void saveRelations(@Nonnull List<B6db.Relation> relations) {
+    db.execute("INSERT INTO item_relation (lhs, rhs, type_id) VALUES (?, ?, ?)",
+        (PreparedStatement ps) -> {
+          for (final B6db.Relation relation : relations) {
+            ps.setLong(1, IdUtil.toLong(relation.getFromId()));
+            ps.setLong(2, IdUtil.toLong(relation.getToId()));
+            ps.setLong(3, getEntityTypeIdFromName(relation.getType()));
+            ps.addBatch();
+          }
+          return ps.executeBatch();
+        });
+  }
 
   @Nonnull
   @Override
@@ -154,7 +183,14 @@ public final class DefaultCatalogDao implements CatalogDao {
       @Nonnull CatalogItemSortType sortType,
       int limit) {
     // brain dead implementation of querying (no SQL builders)
-    final List<B6db.CatalogItem> allItems = db.queryForList("SELECT id FROM item", Long.class).stream()
+    final List<Long> ids;
+    if (relatedItemId > 0) {
+      ids = db.queryForList("SELECT rhs FROM item_relation WHERE lhs=?", Long.class, relatedItemId);
+    } else {
+      ids = db.queryForList("SELECT id FROM item", Long.class);
+    }
+
+    final List<B6db.CatalogItem> allItems = ids.stream()
         .map((id) -> getCatalogItemById(IdUtil.fromLong(id)))
         .collect(Collectors.toList());
     final Optional<B6db.CatalogItem> cursorItem = allItems.stream()
@@ -205,9 +241,18 @@ public final class DefaultCatalogDao implements CatalogDao {
     return db.queryForObject("SELECT id FROM item WHERE name=?", Long.class, itemName);
   }
 
-//  private long getEntityTypeIdFromName(@Nonnull String entityTypeName) {
-//    return db.queryForObject("SELECT id FROM entity_type WHERE name=?", Long.class, entityTypeName);
-//  }
+  private long getEntityTypeIdFromName(@Nonnull String entityTypeName) {
+    // TODO: optimize - use cache (leasing architecture)
+    return db.queryForObject("SELECT id FROM entity_type WHERE name=?", Long.class, entityTypeName);
+  }
+
+  private static B6db.Relation getRelation(@Nonnull ResultSet rs) throws SQLException {
+    return B6db.Relation.newBuilder()
+        .setFromId(IdUtil.fromLong(rs.getLong("lhs")))
+        .setToId(IdUtil.fromLong(rs.getLong("rhs")))
+        .setType(rs.getString("type_name"))
+        .build();
+  }
 
   private static B6db.Item getItem(@Nonnull ResultSet rs) throws SQLException {
     return B6db.Item.newBuilder()

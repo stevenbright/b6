@@ -29,10 +29,17 @@ public interface CatalogDao {
       int limit
   );
 
+  @Nonnull
+  List<B6db.Relation> getRelations(@Nonnull String to);
+
   //
   // Updates (might use separate data source)
   //
 
   @Nonnull
   String persistCatalogItem(@Nonnull B6db.CatalogItem item);
+
+  void removeRelations(@Nonnull String id);
+
+  void saveRelations(@Nonnull List<B6db.Relation> relations);
 }
