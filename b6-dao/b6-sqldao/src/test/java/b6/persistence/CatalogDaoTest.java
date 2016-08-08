@@ -12,8 +12,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalField;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
@@ -75,9 +80,74 @@ public class CatalogDaoTest {
     assertEquals(Collections.emptyList(), dao.getRelations(p1.getId()));
   }
 
+  @Test
+  public void shouldQueryUsers() {
+    final DemoItems items = new DemoItems();
+
+    final List<B6db.CatalogItem> catItems = dao.queryCatalogItems("", "", "", "", CatalogItemSortType.DEFAULT, 10);
+
+    assertEquals(10, catItems.size());
+  }
+
   //
   // Private
   //
+
+  class DemoItems {
+    final B6db.CatalogItem ciEn = saveItem("en", CatalogDao.LANGUAGE_TYPE);
+    final B6db.CatalogItem ciRu = saveItem("ru", CatalogDao.LANGUAGE_TYPE);
+
+    final B6db.CatalogItem ciJack = saveItem("Jack London", CatalogDao.PERSON_TYPE);
+    final B6db.CatalogItem ciEdgar = saveItem("Edgar Poe", CatalogDao.PERSON_TYPE);
+    final B6db.CatalogItem ciStephen = saveItem("Stephen King", CatalogDao.PERSON_TYPE);
+    final B6db.CatalogItem ciJoe = saveItem("Joe Hill", CatalogDao.PERSON_TYPE);
+    final B6db.CatalogItem ciArkady = saveItem("Arkady Strugatsky", CatalogDao.PERSON_TYPE);
+    final B6db.CatalogItem ciBoris = saveItem("Boris Strugatsky", CatalogDao.PERSON_TYPE);
+    final B6db.CatalogItem ciVictor = saveItem("Victor Pelevin", CatalogDao.PERSON_TYPE);
+    final B6db.CatalogItem ciJason = saveItem("Jason Ciaramella", CatalogDao.PERSON_TYPE);
+
+    final B6db.CatalogItem ciSciFi = saveItem("sci_fi", CatalogDao.GENRE_TYPE);
+    final B6db.CatalogItem ciFantasy = saveItem("fantasy", CatalogDao.GENRE_TYPE);
+    final B6db.CatalogItem ciEssay = saveItem("essay", CatalogDao.GENRE_TYPE);
+    final B6db.CatalogItem ciNovel = saveItem("novel", CatalogDao.GENRE_TYPE);
+    final B6db.CatalogItem ciComics = saveItem("comics", CatalogDao.GENRE_TYPE);
+    final B6db.CatalogItem ciWestern = saveItem("western", CatalogDao.GENRE_TYPE);
+    final B6db.CatalogItem ciHorror = saveItem("horror", CatalogDao.GENRE_TYPE);
+
+    final B6db.CatalogItem ciEnClassic = saveItem("EnglishClassicBooks", CatalogDao.ORIGIN_TYPE);
+    final B6db.CatalogItem ciEnModern = saveItem("EnglishModernBooks", CatalogDao.ORIGIN_TYPE);
+    final B6db.CatalogItem ciEnMisc = saveItem("EnglishMisc", CatalogDao.ORIGIN_TYPE);
+    final B6db.CatalogItem ciRuBooks = saveItem("RussianBooks", CatalogDao.ORIGIN_TYPE);
+
+    final B6db.CatalogItem ciSerNoon = saveItem("Noon: 22nd Century", CatalogDao.SERIES_TYPE);
+    final B6db.CatalogItem ciSerTowr = saveItem("The Dark Tower", CatalogDao.SERIES_TYPE);
+
+    final String farRainbow;
+
+    public DemoItems() {
+      farRainbow = dao.persistCatalogItem(B6db.CatalogItem.newBuilder()
+          .setItem(B6db.Item.newBuilder().setTitle("Far Rainbow").setType(CatalogDao.BOOK_TYPE))
+          .setExtensions(B6db.Extensions.newBuilder().setBook(B6db.BookExtension.newBuilder()
+              .setSeriesId(ciSerNoon.getId())
+              .setSeriesPos(3)
+              .addDownloadItems(B6db.DownloadItem.newBuilder()
+                  .setDateAdded(getEpochSecondFromDate(2007, 10, 23))
+                  .setOriginName(ciRuBooks.getItem().getTitle())
+                  .setDownloadId("100-77091"))))
+          .build());
+      dao.saveRelations(Arrays.asList(
+          relation(ciArkady.getId(), farRainbow, CatalogDao.AUTHOR_TYPE),
+          relation(ciBoris.getId(), farRainbow, CatalogDao.AUTHOR_TYPE),
+          relation(ciSciFi.getId(), farRainbow, CatalogDao.GENRE_TYPE),
+          relation(ciNovel.getId(), farRainbow, CatalogDao.GENRE_TYPE),
+          relation(ciEn.getId(), farRainbow, CatalogDao.LANGUAGE_TYPE)
+      ));
+    }
+  }
+
+  private static long getEpochSecondFromDate(int year, int month, int day) {
+    return LocalDate.of(year, month, day).atStartOfDay().toInstant(ZoneOffset.UTC).getEpochSecond();
+  }
 
   private B6db.CatalogItem saveItem(String title, String type) {
     final B6db.CatalogItem.Builder itemBuilder = B6db.CatalogItem.newBuilder()

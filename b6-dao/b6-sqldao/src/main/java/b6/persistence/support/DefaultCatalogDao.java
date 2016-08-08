@@ -80,6 +80,15 @@ public final class DefaultCatalogDao implements CatalogDao {
           limit);
     }
 
+//    final long relItemId = IdUtil.toLong(relatedItemId);
+//    final long stItemId = IdUtil.toLong(startItemId);
+
+//    final B6db.Item item = db.queryForObject(
+//        "SELECT i.title, e.name AS type_name FROM item AS i\n" +
+//            "INNER JOIN entity_type AS e ON e.id=i.type_id\n" +
+//            "WHERE i.id=?",
+//        (rs, i) -> getItem(rs), id);
+
     throw new UnsupportedOperationException();
   }
 
@@ -143,7 +152,7 @@ public final class DefaultCatalogDao implements CatalogDao {
         final B6db.BookExtension bookExt = item.getExtensions().getBook();
         final List<B6db.DownloadItem> downloadItems = bookExt.getDownloadItemsList();
         long finalId = id;
-        final int[] ins = db.execute("INSERT INTO download_id\n" +
+        final int[] ins = db.execute("INSERT INTO item_download\n" +
                 "(item_id, file_size, origin_id, download_id)\n" +
                 "VALUES (?, ?, ?, ?)",
             (PreparedStatement ps) -> {
@@ -238,7 +247,7 @@ public final class DefaultCatalogDao implements CatalogDao {
 
   private long getItemIdFromName(@Nonnull String itemName) {
     // TODO: optimize - use cache (leasing architecture)
-    return db.queryForObject("SELECT id FROM item WHERE name=?", Long.class, itemName);
+    return db.queryForObject("SELECT id FROM item WHERE title=?", Long.class, itemName);
   }
 
   private long getEntityTypeIdFromName(@Nonnull String entityTypeName) {

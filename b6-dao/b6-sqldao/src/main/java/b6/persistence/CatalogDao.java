@@ -15,6 +15,8 @@ public interface CatalogDao {
   String GENRE_TYPE         = "genre";
   String PERSON_TYPE        = "person";
   String ORIGIN_TYPE        = "origin";
+  String SERIES_TYPE        = "series";
+  String AUTHOR_TYPE        = "author";
 
   @Nonnull
   B6db.CatalogItem getCatalogItemById(@Nonnull String id);

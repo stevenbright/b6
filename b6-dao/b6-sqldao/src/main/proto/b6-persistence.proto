@@ -13,6 +13,7 @@ option java_outer_classname = "B6db";
 message Item {
   string title = 1;
   string type = 2;
+  string description = 3;
 }
 
 message DownloadItem {
@@ -20,10 +21,14 @@ message DownloadItem {
   int32 fileSize = 2;
   string originName = 3;
   string downloadId = 4;
+  int64 dateAdded = 5;
 }
 
 message BookExtension {
-  repeated DownloadItem downloadItems = 1;
+  string seriesId = 1;
+  int32 seriesPos = 2;
+
+  repeated DownloadItem downloadItems = 3;
 }
 
 //

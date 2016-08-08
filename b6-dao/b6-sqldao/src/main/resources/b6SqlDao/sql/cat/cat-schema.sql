@@ -13,13 +13,27 @@ CREATE TABLE item (
   type_id           INTEGER NOT NULL,
 
   title             VARCHAR(1024) NOT NULL,
+
+  description       VARCHAR(1024),
   CONSTRAINT fk_item_type FOREIGN KEY (type_id) REFERENCES entity_type(id) ON DELETE CASCADE
+);
+
+CREATE TABLE item_book (
+  item_id           INTEGER PRIMARY KEY,
+
+  series_id         INTEGER NOT NULL,
+  series_pos        INTEGER NOT NULL,
+
+  CONSTRAINT fk_item_book_id FOREIGN KEY (item_id) REFERENCES item(id) ON DELETE CASCADE,
+  CONSTRAINT fk_item_book_series_id FOREIGN KEY (series_id) REFERENCES item(id) ON DELETE CASCADE
 );
 
 CREATE TABLE item_download (
   item_id           INTEGER PRIMARY KEY,
 
   file_size         INTEGER NOT NULL,
+
+  add_date          DATE,
 
   origin_id         INTEGER NOT NULL,
   download_id       VARCHAR(1024) NOT NULL, -- note origin
