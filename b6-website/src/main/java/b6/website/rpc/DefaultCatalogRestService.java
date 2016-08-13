@@ -1,8 +1,8 @@
 package b6.website.rpc;
 
-import b6.persistence.CatalogDao;
-import b6.persistence.model.SortType;
-import b6.persistence.model.generated.B6DB;
+import b6.catalog.persistence.CatalogDao;
+import b6.catalog.persistence.model.SortType;
+import b6.catalog.persistence.model.generated.B6DB;
 import b6.rpc.model.catalog.Catalog;
 import b6.website.util.Id2Str;
 import com.google.protobuf.ByteString;

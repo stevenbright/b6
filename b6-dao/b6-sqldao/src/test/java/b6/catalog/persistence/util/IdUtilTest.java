@@ -1,4 +1,4 @@
-package b6.persistence.util;
+package b6.catalog.persistence.util;
 
 import org.junit.Test;
 

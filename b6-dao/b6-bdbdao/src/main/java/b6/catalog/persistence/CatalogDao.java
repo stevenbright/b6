@@ -1,7 +1,9 @@
-package b6.persistence;
+package b6.catalog.persistence;
 
-import b6.persistence.model.SortType;
-import b6.persistence.model.generated.B6DB;
+import b6.catalog.persistence.model.SortType;
+import b6.catalog.persistence.model.generated.B6DB;
+import b6.catalog.persistence.model.SortType;
+import b6.catalog.persistence.model.generated.B6DB;
 import com.google.protobuf.ByteString;
 import com.sleepycat.je.Transaction;
 

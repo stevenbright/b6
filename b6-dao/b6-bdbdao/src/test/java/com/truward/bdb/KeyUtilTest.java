@@ -1,6 +1,6 @@
 package com.truward.bdb;
 
-import b6.persistence.model.generated.B6DB;
+import b6.catalog.persistence.model.generated.B6DB;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.StringValue;
 import com.sleepycat.je.DatabaseConfig;

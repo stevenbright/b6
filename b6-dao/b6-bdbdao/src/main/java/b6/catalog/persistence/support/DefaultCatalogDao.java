@@ -1,8 +1,9 @@
-package b6.persistence.support;
+package b6.catalog.persistence.support;
 
-import b6.persistence.CatalogDao;
-import b6.persistence.model.SortType;
-import b6.persistence.model.generated.B6DB;
+import b6.catalog.persistence.model.generated.B6DB;
+import b6.catalog.persistence.CatalogDao;
+import b6.catalog.persistence.model.SortType;
+import b6.catalog.persistence.model.generated.B6DB;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.ByteString;

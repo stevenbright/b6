@@ -1,12 +1,14 @@
-package b6.persistence;
+package b6.catalog.persistence;
 
-import b6.persistence.model.SortType;
-import b6.persistence.model.generated.B6DB;
-import b6.persistence.support.DefaultCatalogDao;
+import b6.catalog.persistence.model.generated.B6DB;
+import b6.catalog.persistence.model.SortType;
+import b6.catalog.persistence.model.generated.B6DB;
+import b6.catalog.persistence.support.DefaultCatalogDao;
 import com.truward.bdb.testSupport.BdbEnvironmentTestSupport;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.ByteString;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -269,7 +271,7 @@ public final class CatalogDaoTest extends BdbEnvironmentTestSupport {
     if (result.hasBook()) {
       itemBuilder.setBook(result.getBook());
     }
-    assertEquals(item, itemBuilder.build());
+    Assert.assertEquals(item, itemBuilder.build());
     assertEquals(id, result.getId());
   }
 

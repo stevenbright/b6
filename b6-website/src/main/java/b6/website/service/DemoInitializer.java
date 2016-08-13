@@ -1,7 +1,7 @@
 package b6.website.service;
 
-import b6.persistence.CatalogDao;
-import b6.persistence.model.generated.B6DB;
+import b6.catalog.persistence.CatalogDao;
+import b6.catalog.persistence.model.generated.B6DB;
 import com.google.protobuf.ByteString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

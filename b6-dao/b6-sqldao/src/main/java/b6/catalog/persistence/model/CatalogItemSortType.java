@@ -1,4 +1,4 @@
-package b6.persistence.model;
+package b6.catalog.persistence.model;
 
 /**
  * @author Alexander Shabanov

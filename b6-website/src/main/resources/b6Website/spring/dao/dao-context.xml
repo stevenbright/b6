@@ -34,5 +34,5 @@
 
   <bean id="b6Website.dao.databaseConfigurer" class="com.truward.bdb.StandardBdbDatabaseConfigurer"/>
 
-  <bean id="b6Website.dao.catalogDao" class="b6.persistence.support.DefaultCatalogDao" autowire="constructor" destroy-method="close"/>
+  <bean id="b6Website.dao.catalogDao" class="b6.catalog.persistence.support.DefaultCatalogDao" autowire="constructor" destroy-method="close"/>
 </beans>

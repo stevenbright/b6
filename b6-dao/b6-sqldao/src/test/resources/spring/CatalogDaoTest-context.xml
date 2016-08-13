@@ -4,7 +4,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
   <import resource="db-test-context.xml"/>
 
-  <bean class="b6.persistence.support.DefaultCatalogDao">
+  <bean class="b6.catalog.persistence.support.DefaultCatalogDao">
     <constructor-arg ref="b6SqlDao.dao.jdbcTemplate" />
   </bean>
 </beans>

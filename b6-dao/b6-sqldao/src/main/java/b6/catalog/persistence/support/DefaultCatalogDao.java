@@ -1,9 +1,13 @@
-package b6.persistence.support;
+package b6.catalog.persistence.support;
 
-import b6.persistence.CatalogDao;
-import b6.persistence.model.CatalogItemSortType;
-import b6.persistence.model.generated.B6db;
-import b6.persistence.util.IdUtil;
+import b6.catalog.persistence.CatalogQueryDao;
+import b6.catalog.persistence.CatalogTypes;
+import b6.catalog.persistence.CatalogQueryDao;
+import b6.catalog.persistence.CatalogTypes;
+import b6.catalog.persistence.CatalogUpdateDao;
+import b6.catalog.persistence.model.CatalogItemSortType;
+import b6.catalog.persistence.model.generated.B6db;
+import b6.catalog.persistence.util.IdUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcOperations;
@@ -22,7 +26,7 @@ import java.util.stream.Collectors;
  * @author Alexander Shabanov
  */
 @Transactional(propagation = Propagation.REQUIRED)
-public final class DefaultCatalogDao implements CatalogDao {
+public final class DefaultCatalogDao implements CatalogQueryDao, CatalogUpdateDao {
   private final Logger log = LoggerFactory.getLogger(getClass());
   private final JdbcOperations db;
 
@@ -43,7 +47,7 @@ public final class DefaultCatalogDao implements CatalogDao {
     final B6db.CatalogItem.Builder result = B6db.CatalogItem.newBuilder().setId(idStr).setItem(item);
 
     final B6db.Extensions.Builder extBuilder = B6db.Extensions.newBuilder();
-    if (CatalogDao.BOOK_TYPE.equals(item.getType())) {
+    if (CatalogTypes.BOOK_TYPE.equals(item.getType())) {
       final List<B6db.DownloadItem> downloadItems = db.query(
           "SELECT d.file_size, i.title AS origin_name, d.download_id, \'\' AS descriptor_text\n" +
               "FROM item_download AS d\n" +

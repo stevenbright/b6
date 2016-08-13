@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package b6.catalog.persistence;
+
+option java_package = "b6.catalog.persistence.model.generated";
+option java_outer_classname = "Catdb";
+
+//
+// Base Types
+//
+
+// catalog item - can be book, language, tag, author, genre or origin
+message Item {
+  string title = 1;
+  string type = 2;
+  string description = 3;
+}
+
+message DownloadItem {
+  string descriptorText = 1;
+  int32 fileSize = 2;
+  string originName = 3;
+  string downloadId = 4;
+  int64 dateAdded = 5;
+}
+
+message BookExtension {
+  string seriesId = 1;
+  int32 seriesPos = 2;
+
+  repeated DownloadItem downloadItems = 3;
+}
+
+//
+// Aggregate Types
+//
+
+message Extensions {
+  BookExtension book = 1;
+}
+
+message CatalogItem {
+  string id = 1;
+  Item item = 2;
+  Extensions extensions = 3;
+}
+
+// TODO: separate relations
+//repeated Named relations = 4;
+
+message Relation {
+  string fromId = 1;
+  string toId = 2;
+  string type = 3;
+}

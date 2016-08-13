@@ -1,6 +1,6 @@
 package com.truward.bdb.testSupport;
 
-import b6.persistence.util.DirectoryCleanupTask;
+import b6.catalog.persistence.util.DirectoryCleanupTask;
 import com.sleepycat.je.CacheMode;
 import com.sleepycat.je.DatabaseConfig;
 import com.sleepycat.je.Environment;
