@@ -1,7 +1,6 @@
 package b6.catalog.persistence;
 
 import b6.catalog.persistence.model.generated.B6db;
-import b6.catalog.persistence.model.generated.B6db;
 
 import javax.annotation.Nonnull;
 import java.util.List;

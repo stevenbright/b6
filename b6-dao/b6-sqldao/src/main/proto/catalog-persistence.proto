@@ -11,9 +11,10 @@ option java_outer_classname = "Catdb";
 
 // catalog item - can be book, language, tag, author, genre or origin
 message Item {
-  string title = 1;
-  string type = 2;
-  string description = 3;
+  string externalId = 1;
+  string title = 2;
+  string type = 3;
+  string description = 4;
 }
 
 message DownloadItem {
@@ -53,3 +54,5 @@ message Relation {
   string toId = 2;
   string type = 3;
 }
+
+

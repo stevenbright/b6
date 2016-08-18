@@ -34,10 +34,10 @@ public interface CatalogDao {
 
   @Nonnull
   List<B6DB.CatalogItemResult> getCatalogItems(Transaction tx,
-                                                  @Nonnull ByteString relatedItemId,
-                                                  @Nonnull ByteString startItemId,
-                                                  @Nonnull String titleFilter,
-                                                  @Nonnull String typeFilter,
-                                                  @Nonnull SortType sortType,
-                                                  int limit);
+                                               @Nonnull ByteString relatedItemId,
+                                               @Nonnull ByteString startItemId,
+                                               @Nonnull String titleFilter,
+                                               @Nonnull String typeFilter,
+                                               @Nonnull SortType sortType,
+                                               int limit);
 }
